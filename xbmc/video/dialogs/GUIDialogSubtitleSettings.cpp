@@ -119,10 +119,10 @@ std::string CGUIDialogSubtitleSettings::BrowseForSubtitle()
   else
     strPath = g_application.CurrentFileItem().GetPath();
 
-  std::string strMask = ".utf|.utf8|.utf-8|.sub|.srt|.smi|.rt|.txt|.ssa|.aqt|.jss|.ass|.idx|.zip";
+  std::string strMask = ".utf|.utf8|.utf-8|.sub|.srt|.vtt|.smi|.rt|.txt|.ssa|.aqt|.jss|.ass|.idx|.zip";
 
   if (g_application.GetCurrentPlayer() == "VideoPlayer")
-    strMask = ".srt|.zip|.ifo|.smi|.sub|.idx|.ass|.ssa|.txt";
+    strMask = ".srt|.vtt|.zip|.ifo|.smi|.sub|.idx|.ass|.ssa|.txt";
 
   strMask += extras;
 

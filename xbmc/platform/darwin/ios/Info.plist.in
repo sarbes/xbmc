@@ -591,6 +591,7 @@
           <string>utf-8</string>
           <string>sub</string>
           <string>srt</string>
+          <string>vtt</string>
           <string>smi</string>
           <string>rt</string>
           <string>txt</string>

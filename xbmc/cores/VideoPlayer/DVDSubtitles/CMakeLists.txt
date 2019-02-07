@@ -4,6 +4,7 @@ set(SOURCES DVDFactorySubtitle.cpp
             DVDSubtitleParserMPL2.cpp
             DVDSubtitleParserSami.cpp
             DVDSubtitleParserSubrip.cpp
+            DVDSubtitleParserWebVTT.cpp
             DVDSubtitleParserVplayer.cpp
             DVDSubtitleStream.cpp
             DVDSubtitlesLibass.cpp
@@ -19,6 +20,7 @@ set(HEADERS DVDFactorySubtitle.h
             DVDSubtitleParserSSA.h
             DVDSubtitleParserSami.h
             DVDSubtitleParserSubrip.h
+            DVDSubtitleParserWebVTT.h
             DVDSubtitleParserVplayer.h
             DVDSubtitleStream.h
             DVDSubtitleTagMicroDVD.h

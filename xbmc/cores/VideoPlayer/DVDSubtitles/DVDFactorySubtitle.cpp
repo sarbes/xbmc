@@ -10,6 +10,7 @@
 
 #include "DVDSubtitleStream.h"
 #include "DVDSubtitleParserSubrip.h"
+#include "DVDSubtitleParserWebVTT.h"
 #include "DVDSubtitleParserMicroDVD.h"
 #include "DVDSubtitleParserMPL2.h"
 #include "DVDSubtitleParserSami.h"
@@ -34,6 +35,7 @@ CDVDSubtitleParser* CDVDFactorySubtitle::CreateParser(std::string& strFile)
   {
     if (pStream->ReadLine(line, sizeof(line)))
     {
+      //return new CDVDSubtitleParserWebVTT(std::move(pStream), strFile.c_str());
       if ((sscanf (line, "{%d}{}", &i)==1) ||
           (sscanf (line, "{%d}{%d}", &i, &i)==2))
       {
@@ -42,6 +44,10 @@ CDVDSubtitleParser* CDVDFactorySubtitle::CreateParser(std::string& strFile)
       else if (sscanf(line, "[%d][%d]", &i, &i) == 2)
       {
         return new CDVDSubtitleParserMPL2(std::move(pStream), strFile.c_str());
+      }
+      else if (strstr (line, "WEBVTT"))
+      {
+        return new CDVDSubtitleParserWebVTT(std::move(pStream), strFile.c_str());
       }
       else if (sscanf(line, "%d:%d:%d%*c%d --> %d:%d:%d%*c%d", &i, &i, &i, &i, &i, &i, &i, &i) == 8)
       {
@@ -59,6 +65,10 @@ CDVDSubtitleParser* CDVDFactorySubtitle::CreateParser(std::string& strFile)
       {
         return new CDVDSubtitleParserSami(std::move(pStream), strFile.c_str());
       }
+      /*else if (strstr (line, "<!--Profile: EBU-TT-D-Basic-DE-->"))
+      {
+        return new CDVDSubtitleParserTTML(std::move(pStream), strFile.c_str());
+      }*/
     }
     else
     {
