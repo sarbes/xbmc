@@ -97,20 +97,6 @@ namespace Shaders {
       bool OnEnabled() override;
   };
 
-  class LogoFilterShader : public DefaultFilterShader
-  {
-  public:
-    LogoFilterShader();
-  //  bool OnEnabled() override;
-  };
-
-  class LogoFilterShader_GenerateMask : public DefaultFilterShader
-  {
-  public:
-    LogoFilterShader_GenerateMask();
-    bool OnEnabled() override;
-  };
-
 } // end namespace
 
 
