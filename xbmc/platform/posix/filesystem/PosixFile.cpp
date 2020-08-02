@@ -67,7 +67,7 @@ bool CPosixFile::OpenForWrite(const CURL& url, bool bOverWrite /* = false*/ )
   if (filename.empty())
     return false;
 
-  m_fd = open(filename.c_str(), O_RDWR | O_CREAT | (bOverWrite ? O_TRUNC : 0), S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | S_IROTH);
+  m_fd = open(filename.c_str(), O_RDWR | O_CREAT | (bOverWrite ? O_TRUNC : 0), S_IWUSR | S_IRUSR);
   if (m_fd < 0)
     return false;
 
