@@ -199,6 +199,7 @@ CBaseTexture *CBaseTexture::LoadFromFile(const std::string& texturePath, unsigne
     }
   }
 #endif
+  CLog::Log(LOGERROR, "texturePath = %s", texturePath);
   CTexture *texture = new CTexture();
   if (texture->LoadFromFileInternal(texturePath, idealWidth, idealHeight, requirePixels, strMimeType))
     return texture;

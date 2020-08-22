@@ -45,6 +45,7 @@ void CGLTexture::DestroyTextureObject()
 
 void CGLTexture::LoadToGPU()
 {
+  CLog::Log(LOGERROR, "LoadToGPU");
   if (!m_pixels)
   {
     // nothing to load - probably same image (no change)
@@ -209,6 +210,7 @@ void CGLTexture::LoadToGPU()
 
 void CGLTexture::BindToUnit(unsigned int unit)
 {
+  CLog::Log(LOGERROR, "BindToUnit %i", unit);
   glActiveTexture(GL_TEXTURE0 + unit);
   glBindTexture(GL_TEXTURE_2D, m_texture);
 }

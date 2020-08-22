@@ -125,6 +125,9 @@ CLinuxRendererGL::CLinuxRendererGL()
   m_fbo.width = 0.0;
   m_fbo.height = 0.0;
 
+  m_fbo_logo.width = 0.0;
+  m_fbo_logo.height = 0.0;
+
   m_ColorManager.reset(new CColorManager());
   m_tCLUTTex = 0;
   m_CLUT = NULL;
@@ -149,6 +152,12 @@ CLinuxRendererGL::~CLinuxRendererGL()
   {
     delete m_pVideoFilterShader;
     m_pVideoFilterShader = nullptr;
+  }
+
+  if (m_pLogoFilterShader)
+  {
+    delete m_pLogoFilterShader;
+    m_pLogoFilterShader = nullptr;
   }
 }
 
@@ -192,9 +201,9 @@ bool CLinuxRendererGL::ValidateRenderTarget()
       return false;
 
     if (m_textureTarget == GL_TEXTURE_RECTANGLE)
-      CLog::Log(LOGINFO, "Using GL_TEXTURE_RECTANGLE");
+      CLog::Log(LOGNOTICE, "Using GL_TEXTURE_RECTANGLE");
     else
-      CLog::Log(LOGINFO, "Using GL_TEXTURE_2D");
+      CLog::Log(LOGNOTICE, "Using GL_TEXTURE_2D");
 
     for (int i = 0 ; i < m_NumYV12Buffers ; i++)
       CreateTexture(i);
@@ -447,6 +456,7 @@ bool CLinuxRendererGL::Flush(bool saveBuffers)
   glFinish();
   m_bValidated = false;
   m_fbo.fbo.Cleanup();
+  m_fbo_logo.fbo.Cleanup();
   m_iYV12RenderBuffer = 0;
 
   return safe;
@@ -502,6 +512,8 @@ void CLinuxRendererGL::RenderUpdate(int index, int index2, bool clear, unsigned 
     m_pYUVShader->SetAlpha(alpha/255);
   if (m_pVideoFilterShader)
     m_pVideoFilterShader->SetAlpha(alpha/255);
+  if (m_pLogoFilterShader)
+    m_pLogoFilterShader->SetAlpha(alpha/255);
 
   if (!Render(flags, m_iYV12RenderBuffer) && clear)
     ClearBackBuffer();
@@ -516,6 +528,8 @@ void CLinuxRendererGL::RenderUpdate(int index, int index2, bool clear, unsigned 
       m_pYUVShader->SetAlpha(alpha/255/2);
     if (m_pVideoFilterShader)
       m_pVideoFilterShader->SetAlpha(alpha/255/2);
+    if (m_pLogoFilterShader)
+      m_pLogoFilterShader->SetAlpha(alpha/255/2);
 
     Render(flags, m_iYV12RenderBuffer);
   }
@@ -668,6 +682,15 @@ void CLinuxRendererGL::UpdateVideoFilter()
       return;
     }
   }
+  if (!m_pLogoFilterShader)
+  {
+      m_pLogoFilterShader = new LogoFilterShader();
+    if (!m_pLogoFilterShader->CompileAndLink())
+    {
+      CLog::Log(LOGERROR, "CLinuxRendererGL::UpdateVideoFilter: Error compiling and linking video filter shader");
+      return;
+    }
+  }
 
   bool pixelRatioChanged = (CDisplaySettings::GetInstance().GetPixelRatio() > 1.001f ||
                             CDisplaySettings::GetInstance().GetPixelRatio() < 0.999f) !=
@@ -742,9 +765,36 @@ void CLinuxRendererGL::UpdateVideoFilter()
     delete m_pVideoFilterShader;
     m_pVideoFilterShader = nullptr;
   }
+
+  if (m_pLogoFilterShader)
+  {
+    delete m_pLogoFilterShader;
+    m_pLogoFilterShader = nullptr;
+  }
+
   m_fbo.fbo.Cleanup();
+  m_fbo_logo.fbo.Cleanup();
+
+
+  if (!m_fbo_logo.fbo.Initialize())
+  {
+    CLog::Log(LOGERROR, "GL: Error initializing FBO LOGO");
+  }
+
+  if (!m_fbo_logo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, m_sourceWidth, m_sourceHeight, GL_RGBA16, GL_SHORT))
+  //if (!m_fbo_logo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, m_sourceWidth, m_sourceHeight, GL_RGBA16, GL_SHORT))
+  //if (!m_fbo_logo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, 512, 512, GL_RGBA16, GL_SHORT))
+  {
+    CLog::Log(LOGERROR, "GL: Error creating texture and binding to FBO LOGO");
+  }
 
   VerifyGLState();
+
+  m_pLogoFilterShader = new LogoFilterShader();
+  if (!m_pLogoFilterShader->CompileAndLink())
+  {
+    CLog::Log(LOGERROR, "GL: Error compiling and linking logo filter shader");
+  }
 
   if (m_scalingMethod == VS_SCALINGMETHOD_AUTO)
   {
@@ -777,6 +827,12 @@ void CLinuxRendererGL::UpdateVideoFilter()
     {
       m_pVideoFilterShader = new DefaultFilterShader();
       if (!m_pVideoFilterShader->CompileAndLink())
+      {
+        CLog::Log(LOGERROR, "GL: Error compiling and linking video filter shader");
+        break;
+      }
+      m_pLogoFilterShader = new LogoFilterShader();
+      if (!m_pLogoFilterShader->CompileAndLink())
       {
         CLog::Log(LOGERROR, "GL: Error compiling and linking video filter shader");
         break;
@@ -855,7 +911,9 @@ void CLinuxRendererGL::UpdateVideoFilter()
     delete m_pVideoFilterShader;
     m_pVideoFilterShader = nullptr;
   }
+
   m_fbo.fbo.Cleanup();
+  m_fbo_logo.fbo.Cleanup();
 
   m_pVideoFilterShader = new DefaultFilterShader();
   if (!m_pVideoFilterShader->CompileAndLink())
@@ -903,7 +961,7 @@ void CLinuxRendererGL::LoadShaders(int field)
         if (!m_cmsOn)
           m_pYUVShader->SetConvertFullColorRange(m_fullRange);
 
-        CLog::Log(LOGINFO, "GL: Selecting YUV 2 RGB shader with filter");
+        CLog::Log(LOGNOTICE, "GL: Selecting YUV 2 RGB shader with filter");
 
         if (m_pYUVShader && m_pYUVShader->CompileAndLink())
         {
@@ -928,7 +986,7 @@ void CLinuxRendererGL::LoadShaders(int field)
       if (!m_cmsOn)
         m_pYUVShader->SetConvertFullColorRange(m_fullRange);
 
-      CLog::Log(LOGINFO, "GL: Selecting YUV 2 RGB shader");
+      CLog::Log(LOGNOTICE, "GL: Selecting YUV 2 RGB shader");
 
       if (m_pYUVShader && m_pYUVShader->CompileAndLink())
       {
@@ -944,7 +1002,7 @@ void CLinuxRendererGL::LoadShaders(int field)
 
   if (m_pboSupported)
   {
-    CLog::Log(LOGINFO, "GL: Using GL_ARB_pixel_buffer_object");
+    CLog::Log(LOGNOTICE, "GL: Using GL_ARB_pixel_buffer_object");
     m_pboUsed = true;
   }
   else
@@ -969,6 +1027,7 @@ void CLinuxRendererGL::UnInit()
 
   // cleanup framebuffer object if it was in use
   m_fbo.fbo.Cleanup();
+  m_fbo_logo.fbo.Cleanup();
   m_bValidated = false;
   m_bConfigured = false;
 }
@@ -1000,12 +1059,13 @@ bool CLinuxRendererGL::Render(unsigned int flags, int renderBuffer)
     {
     case RQ_LOW:
     case RQ_SINGLEPASS:
-      RenderSinglePass(renderBuffer, m_currentField);
-      VerifyGLState();
-      break;
+    //  RenderSinglePass(renderBuffer, m_currentField);
+    //  VerifyGLState();
+    //  break;
 
     case RQ_MULTIPASS:
       RenderToFBO(renderBuffer, m_currentField);
+      RenderFromFBOToFBO();
       RenderFromFBO();
       VerifyGLState();
       break;
@@ -1417,6 +1477,179 @@ void CLinuxRendererGL::RenderToFBO(int index, int field, bool weave /*= false*/)
   VerifyGLState();
 }
 
+void CLinuxRendererGL::RenderFromFBOToFBO()
+{
+  if (!m_fbo_logo.fbo.IsValid())
+  {
+    if (!m_fbo_logo.fbo.Initialize())
+    {
+      CLog::Log(LOGERROR, "GL: Error initializing FBO");
+      return;
+    }
+
+    if (!m_fbo_logo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, m_sourceWidth, m_sourceHeight, GL_RGBA, GL_SHORT))
+    {
+      CLog::Log(LOGERROR, "GL: Error creating texture and binding to FBO");
+      return;
+    }
+  }
+
+  glActiveTexture(GL_TEXTURE0);
+  VerifyGLState();
+
+
+
+  // Use regular normalized texture coordinates
+  // 2nd Pass to screen size with optional video filter
+
+  if (!m_pLogoFilterShader)
+  {
+    CLog::Log(LOGERROR, "CLinuxRendererGL::RenderFromFBOToFBO - no logofilter shader");
+    return;
+  }
+
+  m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, GL_NEAREST);
+
+  m_fbo_logo.fbo.BeginRender();
+  VerifyGLState();
+
+
+  m_fbo_logo.width = m_fbo.width;
+  m_fbo_logo.height = m_fbo.height;
+
+  //glClearColor(0, 0.7, 0, 1);
+  //glClear(GL_COLOR_BUFFER_BIT);
+  m_pLogoFilterShader->SetSourceTexture(0);
+  //m_pLogoFilterShader->SetWidth(m_sourceWidth);
+  //m_pLogoFilterShader->SetHeight(m_sourceHeight);
+  m_pLogoFilterShader->SetWidth(m_fbo.width);
+  m_pLogoFilterShader->SetHeight(m_fbo.height);
+
+  glMatrixModview.Push();
+  //1,0,0,0
+  //0,1,0,0
+  //0,0,1,0
+  //0,0,0,1
+  glMatrixModview->LoadIdentity();
+  glMatrixModview.Load();
+
+  glMatrixProject.Push();
+  glMatrixProject->LoadIdentity();
+  //glMatrixProject->Ortho2D(0, m_sourceWidth, 0, m_sourceHeight);
+  glMatrixProject->Ortho2D(0, 1, 0, 1);
+  glMatrixProject.Load();
+
+
+  CRect viewport;
+  m_renderSystem->GetViewPort(viewport);
+  glViewport(0, 0, m_sourceWidth, m_sourceHeight);
+  glScissor (0, 0, m_sourceWidth, m_sourceHeight);
+
+
+  /*
+  //disable non-linear stretch when a dvd menu is shown, parts of the menu are rendered through the overlay renderer
+  //having non-linear stretch on breaks the alignment
+  if (g_application.GetAppPlayer().IsInMenu())
+    m_pLogoFilterShader->SetNonLinStretch(1.0);
+  else
+    m_pLogoFilterShader->SetNonLinStretch(pow(CDisplaySettings::GetInstance().GetPixelRatio(), CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoNonLinStretchRatio));
+  */
+  m_pLogoFilterShader->SetMatrices(glMatrixProject.Get(), glMatrixModview.Get());
+  //m_pLogoFilterShader->SetMatrices(glMatrixModview.Get(), glMatrixModview.Get());
+  m_pLogoFilterShader->Enable();
+
+  VerifyGLState();
+
+  float imgwidth = m_fbo.width / m_sourceWidth;
+  float imgheight = m_fbo.height / m_sourceHeight;
+
+  GLubyte idx[4] = {0, 1, 3, 2};  //determines order of the vertices
+  GLuint vertexVBO;
+  GLuint indexVBO;
+  struct PackedVertex
+  {
+    float x, y, z;
+    float u1, v1;
+  } vertex[4];
+
+  GLint vertLoc = m_pLogoFilterShader->GetVertexLoc();
+  GLint loc = m_pLogoFilterShader->GetCoordLoc();
+
+  // Setup vertex position values
+  // top left
+  vertex[0].x = 0.0f;
+  vertex[0].y = 0.0f;
+  vertex[0].z = 0.0f;
+  vertex[0].u1 = 0.0f;
+  vertex[0].v1 = 0.0f;
+
+  // top right
+  //vertex[1].x = m_fbo_logo.width;
+  vertex[1].x = 1.0f;
+  vertex[1].y = 0.0f;
+  vertex[1].z = 0.0f;
+  vertex[1].u1 = 1.0f;
+  vertex[1].v1 = 0.0f;
+
+  // bottom right
+  //vertex[2].x = m_fbo_logo.width;
+  //vertex[2].y = m_fbo_logo.height;
+  vertex[2].x = 1.0f;
+  vertex[2].y = 1.0f;
+  vertex[2].z = 0.0f;
+  vertex[2].u1 = 1.0f;
+  vertex[2].v1 = 1.0f;
+
+  // bottom left
+  vertex[3].x = 0.0f;
+  //vertex[3].y = m_fbo_logo.height;
+  vertex[3].y = 1.0f;
+  vertex[3].z = 0.0f;
+  vertex[3].u1 = 0.0f;
+  vertex[3].v1 = 1.0f;
+
+  glGenBuffers(1, &vertexVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*4, &vertex[0], GL_STATIC_DRAW);
+
+  glVertexAttribPointer(vertLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, x)));
+  glVertexAttribPointer(loc, 2, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, u1)));
+
+
+  glEnableVertexAttribArray(vertLoc);
+  glEnableVertexAttribArray(loc);
+
+  glGenBuffers(1, &indexVBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*4, idx, GL_STATIC_DRAW);
+
+  glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, 0);
+  VerifyGLState();
+
+  glDisableVertexAttribArray(loc);
+  glDisableVertexAttribArray(vertLoc);
+
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &vertexVBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &indexVBO);
+
+  m_pLogoFilterShader->Disable();
+
+  glMatrixModview.PopLoad();
+  glMatrixProject.PopLoad();
+
+  m_renderSystem->SetViewPort(viewport);
+
+  m_fbo_logo.fbo.EndRender();
+
+  VerifyGLState();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  VerifyGLState();
+}
+
 void CLinuxRendererGL::RenderFromFBO()
 {
   glActiveTexture(GL_TEXTURE0);
@@ -1435,7 +1668,8 @@ void CLinuxRendererGL::RenderFromFBO()
   if (!m_pVideoFilterShader->GetTextureFilter(filter))
     filter = m_scalingMethod == VS_SCALINGMETHOD_NEAREST ? GL_NEAREST : GL_LINEAR;
 
-  m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, filter);
+  //m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, filter);
+  m_fbo_logo.fbo.SetFiltering(GL_TEXTURE_2D, filter);
   m_pVideoFilterShader->SetSourceTexture(0);
   m_pVideoFilterShader->SetWidth(m_sourceWidth);
   m_pVideoFilterShader->SetHeight(m_sourceHeight);
@@ -1467,8 +1701,10 @@ void CLinuxRendererGL::RenderFromFBO()
   GLint vertLoc = m_pVideoFilterShader->GetVertexLoc();
   GLint loc = m_pVideoFilterShader->GetCoordLoc();
 
+  /**/
   // Setup vertex position values
   // top left
+  //vertex[0].x = 0.0f;
   vertex[0].x = m_rotatedDestCoords[0].x;
   vertex[0].y = m_rotatedDestCoords[0].y;
   vertex[0].z = 0.0f;
@@ -1495,6 +1731,38 @@ void CLinuxRendererGL::RenderFromFBO()
   vertex[3].z = 0.0f;
   vertex[3].u1 = 0.0f;
   vertex[3].v1 = imgheight;
+  /**/
+  /*
+  // Setup vertex position values
+  // top left
+  vertex[0].x = 0.0f;
+  vertex[0].y = 0.0f;
+  vertex[0].z = 0.0f;
+  vertex[0].u1 = 0.0f;
+  vertex[0].v1 = 0.0f;
+  // top right
+  //vertex[1].x = m_fbo_logo.width;
+  vertex[1].x = 1.0f;
+  vertex[1].y = 0.0f;
+  vertex[1].z = 0.0f;
+  vertex[1].u1 = 1.0f;
+  vertex[1].v1 = 0.0f;
+  // bottom right
+  //vertex[2].x = m_fbo_logo.width;
+  //vertex[2].y = m_fbo_logo.height;
+  vertex[2].x = 1.0f;
+  vertex[2].y = 1.0f;
+  vertex[2].z = 0.0f;
+  vertex[2].u1 = 1.0f;
+  vertex[2].v1 = 1.0f;
+  // bottom left
+  vertex[3].x = 0.0f;
+  //vertex[3].y = m_fbo_logo.height;
+  vertex[3].y = 1.0f;
+  vertex[3].z = 0.0f;
+  vertex[3].u1 = 0.0f;
+  vertex[3].v1 = 1.0f;
+  */
 
   glGenBuffers(1, &vertexVBO);
   glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
@@ -1524,6 +1792,10 @@ void CLinuxRendererGL::RenderFromFBO()
   m_pVideoFilterShader->Disable();
 
   VerifyGLState();
+
+
+  //glMatrixModview.PopLoad();
+  //glMatrixProject.PopLoad();
 
   glBindTexture(GL_TEXTURE_2D, 0);
   VerifyGLState();
@@ -2698,8 +2970,7 @@ bool CLinuxRendererGL::LoadCLUT()
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
   // load 3DLUT data
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16, m_CLUTsize, m_CLUTsize, m_CLUTsize, 0, GL_RGB,
-               GL_UNSIGNED_SHORT, m_CLUT);
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16, m_CLUTsize, m_CLUTsize, m_CLUTsize, 0, GL_RGB16, GL_UNSIGNED_SHORT, m_CLUT);
   free(m_CLUT);
   glActiveTexture(GL_TEXTURE0);
   return true;

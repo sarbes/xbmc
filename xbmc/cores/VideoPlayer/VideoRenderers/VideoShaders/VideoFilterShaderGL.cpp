@@ -14,6 +14,7 @@
 #include "rendering/RenderSystem.h"
 #include "utils/GLUtils.h"
 #include "utils/log.h"
+#include "guilib/Texture.h"
 
 #include <math.h>
 #include <string>
@@ -231,6 +232,59 @@ void StretchFilterShader::OnCompiledAndLinked()
 bool StretchFilterShader::OnEnabled()
 {
   glUniform1i(m_hSourceTex, m_sourceTexUnit);
+  glUniform1f(m_hStretch, m_stretch);
+  glUniform1f(m_hAlpha, m_alpha);
+  glUniformMatrix4fv(m_hProj, 1, GL_FALSE, m_proj);
+  glUniformMatrix4fv(m_hModel, 1, GL_FALSE, m_model);
+  VerifyGLState();
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////
+// LogoFilterShader - base class for video filter shaders
+//////////////////////////////////////////////////////////////////////
+
+LogoFilterShader::LogoFilterShader()
+{
+  PixelShader()->LoadSource("gl_logofilter.glsl");
+  CLog::Log(LOGERROR, "LogoFilterShader()");
+  m_logoTexUnit = 1;
+  //m_texture = CBaseTexture::LoadFromFile("~/home/.kodi/mask.png");
+  //m_texture.reset(new CTexture(0, 0, XB_FMT_A8R8G8B8));
+
+
+  //CBaseTexture *m_texture = NULL;
+  m_texture = CBaseTexture::LoadFromFile("special://home/mask.png");
+  ////m_texture = CBaseTexture::LoadFromFile(loadPath, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(), CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight());
+  m_texture->LoadToGPU();
+  //m_texture->BindToUnit(m_logoTexUnit);
+}
+
+LogoFilterShader::~LogoFilterShader()
+{
+  //m_texture->~CBaseTexture();
+}
+
+void LogoFilterShader::OnCompiledAndLinked()
+{
+  m_hSourceTex = glGetUniformLocation(ProgramHandle(), "img");
+  m_hLogoTex = glGetUniformLocation(ProgramHandle(), "mask");
+  m_hStretch = glGetUniformLocation(ProgramHandle(), "m_stretch");
+  m_hAlpha = glGetUniformLocation(ProgramHandle(), "m_alpha");
+  m_hProj = glGetUniformLocation(ProgramHandle(), "m_proj");
+  m_hModel = glGetUniformLocation(ProgramHandle(), "m_model");
+  m_hVertex = glGetAttribLocation(ProgramHandle(), "m_attrpos");
+  m_hCoord = glGetAttribLocation(ProgramHandle(), "m_attrcord");
+}
+
+bool LogoFilterShader::OnEnabled()
+{
+  CLog::Log(LOGERROR, "m_sourceTexUnit = %i", m_sourceTexUnit);
+  CLog::Log(LOGERROR, "m_logoTexUnit = %i", m_logoTexUnit);
+  glUniform1i(m_hSourceTex, m_sourceTexUnit);
+  m_texture->BindToUnit(m_logoTexUnit);
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1i(m_hLogoTex, m_logoTexUnit);
   glUniform1f(m_hStretch, m_stretch);
   glUniform1f(m_hAlpha, m_alpha);
   glUniformMatrix4fv(m_hProj, 1, GL_FALSE, m_proj);

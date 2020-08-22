@@ -126,6 +126,7 @@ protected:
 
   // renderers
   void RenderToFBO(int renderBuffer, int field, bool weave = false);
+  void RenderFromFBOToFBO();
   void RenderFromFBO();
   void RenderSinglePass(int renderBuffer, int field); // single pass glsl renderer
   void RenderRGB(int renderBuffer, int field);      // render using vdpau/vaapi hardware
@@ -154,6 +155,12 @@ protected:
     float width, height;
   } m_fbo;
 
+  struct
+  {
+    CFrameBufferObject fbo;
+    float width, height;
+  } m_fbo_logo;
+
   int m_iYV12RenderBuffer = 0;
   int m_NumYV12Buffers = 0;
 
@@ -161,7 +168,8 @@ protected:
   bool m_bValidated = false;
   GLenum m_textureTarget;
   int m_renderMethod = RENDER_GLSL;
-  RenderQuality m_renderQuality = RQ_SINGLEPASS;
+  //RenderQuality m_renderQuality = RQ_SINGLEPASS;
+  RenderQuality m_renderQuality = RQ_MULTIPASS;
   CRenderSystemGL *m_renderSystem = nullptr;
 
   // Raw data used by renderer
@@ -212,6 +220,7 @@ protected:
 
   Shaders::BaseYUV2RGBGLSLShader *m_pYUVShader = nullptr;
   Shaders::BaseVideoFilterShader *m_pVideoFilterShader = nullptr;
+  Shaders::BaseVideoFilterShader *m_pLogoFilterShader = nullptr;
   ESCALINGMETHOD m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
   ESCALINGMETHOD m_scalingMethodGui = VS_SCALINGMETHOD_MAX;
   bool m_useDithering;

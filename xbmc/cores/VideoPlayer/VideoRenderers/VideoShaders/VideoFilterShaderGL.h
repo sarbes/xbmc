@@ -11,6 +11,8 @@
 #include "GLSLOutput.h"
 #include "cores/VideoSettings.h"
 #include "guilib/Shader.h"
+#include "guilib/Texture.h"
+#include <memory>
 
 #include "system_gl.h"
 
@@ -88,6 +90,21 @@ namespace Shaders {
       StretchFilterShader();
       void OnCompiledAndLinked() override;
       bool OnEnabled() override;
+  };
+
+  class LogoFilterShader : public BaseVideoFilterShader
+  {
+    public:
+      LogoFilterShader();
+      ~LogoFilterShader();
+      void OnCompiledAndLinked() override;
+      bool OnEnabled() override;
+    protected:
+      GLint m_logoTexUnit;
+      GLint m_hLogoTex;
+      //CBaseTexture m_texture;
+      CBaseTexture *m_texture = NULL;
+      //std::unique_ptr<CTexture> m_texture;
   };
 
   class DefaultFilterShader : public BaseVideoFilterShader
