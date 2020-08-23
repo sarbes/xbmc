@@ -18,6 +18,10 @@
 #include "utils/GLUtils.h"
 #include "utils/log.h"
 
+#include "Application.h"
+#include "guilib/Texture.h"
+#include "filesystem/File.h"
+
 #include <sstream>
 #include <string>
 
@@ -92,6 +96,22 @@ BaseYUV2RGBGLSLShader::BaseYUV2RGBGLSLShader(bool rect, EShaderFormat format, bo
     m_defines += "#define XBMC_TONE_MAPPING\n";
   }
 
+  //if (logoFilter)
+  if (true)//TODO
+  {
+    const std::string &m_currentItemPath = g_application.CurrentFileItem().GetPath();
+    const std::string m_filename = ".mask.png";
+    const std::string m_maskPath = m_currentItemPath.c_str() + m_filename;
+    if (XFILE::CFile::Exists(m_maskPath))
+    {
+      CLog::Log(LOGDEBUG, "Logofilter - mask file: %s", m_maskPath);
+      m_logoTexture = CBaseTexture::LoadFromFile(m_maskPath);
+      m_logoTexture->LoadToGPU();
+      m_logoFilter = true;
+      m_defines += "#define XBMC_LOGOFILTER\n";
+    }
+  }
+
   VertexShader()->LoadSource("gl_yuv2rgb_vertex.glsl", m_defines);
 
   CLog::Log(LOGDEBUG, "GL: BaseYUV2RGBGLSLShader: defines:\n%s", m_defines.c_str());
@@ -111,6 +131,7 @@ void BaseYUV2RGBGLSLShader::OnCompiledAndLinked()
   m_hYTex = glGetUniformLocation(ProgramHandle(), "m_sampY");
   m_hUTex = glGetUniformLocation(ProgramHandle(), "m_sampU");
   m_hVTex = glGetUniformLocation(ProgramHandle(), "m_sampV");
+  m_hLogoTex = glGetUniformLocation(ProgramHandle(), "m_sampMask");
   m_hYuvMat = glGetUniformLocation(ProgramHandle(), "m_yuvmat");
   m_hStretch = glGetUniformLocation(ProgramHandle(), "m_stretch");
   m_hStep = glGetUniformLocation(ProgramHandle(), "m_step");
@@ -126,6 +147,7 @@ void BaseYUV2RGBGLSLShader::OnCompiledAndLinked()
   m_hGammaDstInv = glGetUniformLocation(ProgramHandle(), "m_gammaDstInv");
   m_hCoefsDst = glGetUniformLocation(ProgramHandle(), "m_coefsDst");
   m_hToneP1 = glGetUniformLocation(ProgramHandle(), "m_toneP1");
+  m_logoOffset = glGetUniformLocation(ProgramHandle(), "m_logoOffset");
   VerifyGLState();
 
   if (m_glslOutput)
@@ -176,6 +198,14 @@ bool BaseYUV2RGBGLSLShader::OnEnabled()
     CConvertMatrix::GetRGBYuvCoefs(AVColorSpace::AVCOL_SPC_BT709, coefs);
     glUniform3f(m_hCoefsDst, coefs[0], coefs[1], coefs[2]);
     glUniform1f(m_hToneP1, param);
+  }
+
+  if (m_logoFilter)
+  {
+    m_logoTexture->BindToUnit(m_logoTexUnit);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(m_hLogoTex, m_logoTexUnit);
+    glUniform2f(m_logoOffset, 0.0f, 0.0f);//TODO
   }
 
   VerifyGLState();

@@ -12,6 +12,7 @@
 #include "ShaderFormats.h"
 #include "GLSLOutput.h"
 #include "guilib/Shader.h"
+#include "guilib/Texture.h"
 #include "cores/VideoSettings.h"
 
 #include <memory>
@@ -79,6 +80,10 @@ protected:
   float m_contrast;
   float m_stretch;
 
+  bool m_logoFilter = false;
+  int m_logoTexUnit = 5;
+  CBaseTexture *m_logoTexture = NULL;
+
   const GLfloat *m_proj = nullptr;
   const GLfloat *m_model = nullptr;
   GLfloat m_alpha = 1.0f;
@@ -92,6 +97,7 @@ protected:
   GLint m_hYTex = -1;
   GLint m_hUTex = -1;
   GLint m_hVTex = -1;
+  GLint m_hLogoTex = -1;
   GLint m_hYuvMat = -1;
   GLint m_hStretch = -1;
   GLint m_hStep = -1;
@@ -100,6 +106,7 @@ protected:
   GLint m_hPrimMat = -1;
   GLint m_hToneP1 = -1;
   GLint m_hCoefsDst = -1;
+  GLint m_logoOffset = -1;
 
   // vertex shader attribute handles
   GLint m_hVertex = -1;

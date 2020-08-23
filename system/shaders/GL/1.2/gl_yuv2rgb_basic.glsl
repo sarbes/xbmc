@@ -27,6 +27,7 @@
 uniform sampler2D m_sampY;
 uniform sampler2D m_sampU;
 uniform sampler2D m_sampV;
+uniform sampler2D m_sampMask;
 varying vec2      m_cordY;
 varying vec2      m_cordU;
 varying vec2      m_cordV;
@@ -37,6 +38,7 @@ uniform mat3 m_primMat;
 uniform float m_gammaDstInv;
 uniform float m_gammaSrc;
 uniform float m_alpha;
+uniform vec2 m_logoOffset;
 
 vec2 stretch(vec2 pos)
 {
@@ -54,6 +56,32 @@ vec2 stretch(vec2 pos)
 #else
   return pos;
 #endif
+}
+
+vec3 logofilter_limited(vec3 color, vec2 coord)
+{
+  vec3 mask = texture(m_sampMask, coord + m_logoOffset).rgb;
+  color -= 16./255.;
+  mask -= 16./255.;
+  color = (color - mask) / (1. - mask*(255.0/239.0));
+  //color += mask*.2;
+  color += 16./255.;
+  return color;
+}
+
+vec3 logofilter_full(vec3 color, vec2 coord)
+{
+  vec3 ogcolor = color;
+  vec3 mask = texture(m_sampMask, coord + m_logoOffset).rgb;
+  vec3 ogmask = texture(m_sampMask, coord + m_logoOffset).rgb;
+  color *= 219.0/255.0;
+  mask -= 16./255.;
+  color = (color - mask) / (1. - mask*(255.0/239.0));
+  //color += mask*.2;
+  //color += 16./255.;
+  color *= 255.0/219.0;
+  //if (ogcolor.r <= 8./255.) color.r = 1.;
+  return color;
 }
 
 vec4 process()
@@ -119,6 +147,10 @@ vec4 process()
 
   rgb.a = m_alpha;
 
+#endif
+
+#ifdef XBMC_LOGOFILTER
+  rgb.rgb = logofilter_full(rgb.rgb, m_cordY);
 #endif
 
 #if defined(XBMC_COL_CONVERSION)
