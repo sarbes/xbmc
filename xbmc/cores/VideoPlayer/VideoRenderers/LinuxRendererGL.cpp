@@ -1439,7 +1439,8 @@ void CLinuxRendererGL::RenderFromFBO()
   if (!m_pVideoFilterShader->GetTextureFilter(filter))
     filter = m_scalingMethod == VS_SCALINGMETHOD_NEAREST ? GL_NEAREST : GL_LINEAR;
 
-  m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, filter);
+  //m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, filter);
+  m_fbo.fbo.SetFiltering(GL_TEXTURE_2D, GL_LINEAR);
   m_pVideoFilterShader->SetSourceTexture(0);
   m_pVideoFilterShader->SetWidth(m_sourceWidth);
   m_pVideoFilterShader->SetHeight(m_sourceHeight);

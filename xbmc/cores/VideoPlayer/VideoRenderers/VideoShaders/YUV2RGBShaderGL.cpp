@@ -249,7 +249,9 @@ YUV2RGBFilterShader4::YUV2RGBFilterShader4(bool rect,
 : BaseYUV2RGBGLSLShader(rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, output)
 {
   m_scaling = method;
-  PixelShader()->LoadSource("gl_yuv2rgb_filter4.glsl", m_defines);
+  PixelShader()->LoadSource("gl_yuv2rgb_header.glsl", m_defines);
+  PixelShader()->AppendSource("gl_yuv_scaler_convolution-4x4.glsl");
+  PixelShader()->AppendSource("gl_yuv2rgb_process.glsl");
   PixelShader()->AppendSource("gl_output.glsl");
 
   PixelShader()->InsertSource("gl_tonemap.glsl", "vec4 process()");
@@ -303,3 +305,25 @@ bool YUV2RGBFilterShader4::OnEnabled()
 
   return BaseYUV2RGBGLSLShader::OnEnabled();
 }
+
+/*
+//------------------------------------------------------------------------------
+// YUV2RGBFilterShader4BSpline
+//------------------------------------------------------------------------------
+
+YUV2RGBFilterShader4BSpline::YUV2RGBFilterShader4BSpline(bool rect,
+                                           EShaderFormat format,
+                                           bool stretch,
+                                           AVColorPrimaries dstPrimaries, AVColorPrimaries srcPrimaries,
+                                           bool toneMap,
+                                           ESCALINGMETHOD method,
+                                           std::shared_ptr<GLSLOutput> output)
+: BaseYUV2RGBGLSLShader(rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, output)
+{
+  m_scaling = method;
+  PixelShader()->LoadSource("gl_yuv2rgb_header.glsl", m_defines);
+  PixelShader()->AppendSource("gl_output.glsl");
+  PixelShader()->AppendSource("gl_output.glsl");
+
+  PixelShader()->InsertSource("gl_tonemap.glsl", "vec4 process()");
+}*/
