@@ -344,6 +344,7 @@ void CGUIDialogVideoSettings::InitializeSettings()
   entries.clear();
   entries.push_back(TranslatableIntegerSettingOption(16301, VS_SCALINGMETHOD_NEAREST));
   entries.push_back(TranslatableIntegerSettingOption(16302, VS_SCALINGMETHOD_LINEAR));
+  entries.push_back(TranslatableIntegerSettingOption(16303, VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST));//TODO: add string
   entries.push_back(TranslatableIntegerSettingOption(16303, VS_SCALINGMETHOD_CUBIC_B_SPLINE));
   entries.push_back(TranslatableIntegerSettingOption(16314, VS_SCALINGMETHOD_CUBIC_MITCHELL));
   entries.push_back(TranslatableIntegerSettingOption(16321, VS_SCALINGMETHOD_CUBIC_CATMULL));
