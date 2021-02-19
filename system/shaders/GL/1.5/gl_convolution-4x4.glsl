@@ -8,6 +8,165 @@ in vec2 m_cord;
 out vec4 fragColor;
 uniform sampler1D kernelTex;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vec4 cubic(float v){
+    vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+    vec4 s = n * n * n;
+    float x = s.x;
+    float y = s.y - 4.0 * s.x;
+    float z = s.z - 4.0 * s.y + 6.0 * s.x;
+    float w = 6.0 - x - y - z;
+    return vec4(x, y, z, w) * (1.0/6.0);
+}
+
+vec4 textureBicubic(sampler2D sampler, vec2 texCoords){
+
+   vec2 texSize = textureSize(sampler, 0);
+   vec2 invTexSize = 1.0 / texSize;
+
+   texCoords = texCoords * texSize - 0.5;
+
+
+    vec2 fxy = fract(texCoords);
+    texCoords -= fxy;
+
+    vec4 xcubic = cubic(fxy.x);
+    vec4 ycubic = cubic(fxy.y);
+
+    vec4 c = texCoords.xxyy + vec2 (-0.5, +1.5).xyxy;
+
+    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+    vec4 offset = c + vec4 (xcubic.yw, ycubic.yw) / s;
+
+    offset *= invTexSize.xxyy;
+
+    vec4 sample0 = texture(sampler, offset.xz);
+    vec4 sample1 = texture(sampler, offset.yz);
+    vec4 sample2 = texture(sampler, offset.xw);
+    vec4 sample3 = texture(sampler, offset.yw);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix(
+       mix(sample3, sample2, sx), mix(sample1, sample0, sx)
+    , sy);
+}
+
+
+
+
+
+
+
+
+
+float w0(float a)
+{
+    return (1.0/6.0)*(a*(a*(-a + 3.0) - 3.0) + 1.0);
+}
+
+float w1(float a)
+{
+    return (1.0/6.0)*(a*a*(3.0*a - 6.0) + 4.0);
+}
+
+float w2(float a)
+{
+    return (1.0/6.0)*(a*(a*(-3.0*a + 3.0) + 3.0) + 1.0);
+}
+
+float w3(float a)
+{
+    return (1.0/6.0)*(a*a*a);
+}
+
+// g0 and g1 are the two amplitude functions
+float g0(float a)
+{
+    return w0(a) + w1(a);
+}
+
+float g1(float a)
+{
+    return w2(a) + w3(a);
+}
+
+// h0 and h1 are the two offset functions
+float h0(float a)
+{
+    return -1.0 + w1(a) / (w0(a) + w1(a));
+}
+
+float h1(float a)
+{
+    return 1.0 + w3(a) / (w2(a) + w3(a));
+}
+
+vec4 texture_bicubic(sampler2D tex, vec2 uv)
+{
+  vec4 texelSize = vec4( stepxy,  1.0 / stepxy);
+  vec2 uvorg = uv;
+	uv = uv*texelSize.zw + 0.5;
+	vec2 iuv = floor( uv );
+	vec2 fuv = fract( uv );
+
+  float g0x = g0(fuv.x);
+  float g1x = g1(fuv.x);
+  float h0x = h0(fuv.x);
+  float h1x = h1(fuv.x);
+  float h0y = h0(fuv.y);
+  float h1y = h1(fuv.y);
+
+	vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - 0.5) * texelSize.xy;
+	vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - 0.5) * texelSize.xy;
+	vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * texelSize.xy;
+	vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * texelSize.xy;
+	
+
+  vec4 result;
+  if (uvorg.x <= .5)
+  {
+    result = g0(fuv.y) * (g0x * texture(tex, p0)  +
+                        g1x * texture(tex, p1)) +
+           g1(fuv.y) * (g0x * texture(tex, p2)  +
+                        g1x * texture(tex, p3));
+  }
+  else
+  {
+    result = g0(fuv.y) * mix(texture(tex, p0), texture(tex, p1), g0x) +
+           g1(fuv.y) * (g0x * texture(tex, p2)  +
+                        g1x * texture(tex, p3));
+  }
+    result = g0(fuv.y) * (g0x * texture(tex, p0)  +
+                        g1x * texture(tex, p1)) +
+           g1(fuv.y) * (g0x * texture(tex, p2)  +
+                        g1x * texture(tex, p3));
+  if (abs(uvorg.x-.5) <= .05)
+  {
+    result = vec4(1.);
+  }
+  return result;
+}
+
+
+
+
+
+
 vec4 weight(float pos)
 {
 #if defined(HAS_FLOAT_TEXTURE)
@@ -67,5 +226,7 @@ vec4 process()
     line(xystart.y + stepxy.y * 3.0, xpos, linetaps) * columntaps.a;
 
   rgb.a = m_alpha;
+  //rgb.rgb = abs(textureBicubic(img, stretch(m_cord)).rgb-rgb.rgb)*20.;
+  rgb.rgb = abs(texture_bicubic(img, stretch(m_cord)).rgb-textureBicubic(img, stretch(m_cord)).rgb)*20.;
   return rgb;
 }
