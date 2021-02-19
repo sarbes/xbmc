@@ -6,69 +6,6 @@ uniform float m_stretch;
 uniform float m_alpha;
 in vec2 m_cord;
 out vec4 fragColor;
-uniform sampler1D kernelTex;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-vec4 cubic(float v){
-    vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
-    vec4 s = n * n * n;
-    float x = s.x;
-    float y = s.y - 4.0 * s.x;
-    float z = s.z - 4.0 * s.y + 6.0 * s.x;
-    float w = 6.0 - x - y - z;
-    return vec4(x, y, z, w) * (1.0/6.0);
-}
-
-vec4 textureBicubic(sampler2D sampler, vec2 texCoords){
-
-   vec2 texSize = textureSize(sampler, 0);
-   vec2 invTexSize = 1.0 / texSize;
-
-   texCoords = texCoords * texSize - 0.5;
-
-
-    vec2 fxy = fract(texCoords);
-    texCoords -= fxy;
-
-    vec4 xcubic = cubic(fxy.x);
-    vec4 ycubic = cubic(fxy.y);
-
-    vec4 c = texCoords.xxyy + vec2 (-0.5, +1.5).xyxy;
-
-    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
-    vec4 offset = c + vec4 (xcubic.yw, ycubic.yw) / s;
-
-    offset *= invTexSize.xxyy;
-
-    vec4 sample0 = texture(sampler, offset.xz);
-    vec4 sample1 = texture(sampler, offset.yz);
-    vec4 sample2 = texture(sampler, offset.xw);
-    vec4 sample3 = texture(sampler, offset.yw);
-
-    float sx = s.x / (s.x + s.y);
-    float sy = s.z / (s.z + s.w);
-
-    return mix(
-       mix(sample3, sample2, sx), mix(sample1, sample0, sx)
-    , sy);
-}
-
-
-
-
 
 
 
@@ -167,14 +104,58 @@ vec4 texture_bicubic(sampler2D tex, vec2 uv)
 
 
 
+
+
+
+
+
+
+
+
+
+#if (XBMC_SCALER_WEIGHT_BSPLINE)
 vec4 weight(float pos)
 {
-#if defined(HAS_FLOAT_TEXTURE)
-  return texture(kernelTex, pos);
-#else
-  return texture(kernelTex, pos) * 2.0 - 1.0;
-#endif
+  vec2 posAD = vec2(2.-pos, 1.+pos);
+  vec2 posBC = vec2(1.-pos, pos);
+  vec4 result;
+  result.xw = -(posAD * posAD * posAD) / 6. + posAD * posAD - 2. * posAD + 4. / 3.;
+  result.yz = 0.5 * posBC * posBC * posBC - posBC * posBC + 2. / 3.;
+  return result;
 }
+
+#elif (XBMC_SCALER_WEIGHT_BICUBIC)
+vec4 weight(float pos)
+{
+  vec2 posAD = vec2(2. - pos, 1. + pos);
+  vec2 posBC = vec2(1. - pos, pos);
+  vec4 result;
+
+  result.xw = 1. / 6. * ((-constantB - 6. * constantC) * posAD * posAD * posAD + 
+                         (6. * constantB + 30. * constantC) * posAD * posAD +
+                         (-12. * constantB - 48. * constantC) * posAD +
+                         (8. * constantB + 24. * constantC));
+  
+  
+  
+  result.yz = 1. / 6. * ((12. - 9. * constantB - 6. * constantC) * posBC * posBC * posBC +
+                         (-18. + 12. * constantB + 6. * constantC) * posBC * posBC +
+                         (6. - 2. + constantB));
+  return result;
+}
+
+#elif (XBMC_SCALER_WEIGHT_LANCZOS)
+vec4 weight(float pos)
+{
+  vec4 x = vec4(2. - pos, 1. - pos, pos, 1. + pos);
+  vec4 result;
+  float pi = 3.1415926535;
+  float a = 2.;
+  result = (a*sin(pi*x) * sin(0.5*(pi*x)))/(pi*pi*x*x);
+  result = min(vec4(1.),result);
+  return result;
+}
+#endif
 
 vec2 stretch(vec2 pos)
 {
@@ -212,10 +193,6 @@ vec4 process()
   vec4 linetaps   = weight(1.0 - f.x);
   vec4 columntaps = weight(1.0 - f.y);
 
-  //make sure all taps added together is exactly 1.0, otherwise some (very small) distortion can occur
-  linetaps /= linetaps.r + linetaps.g + linetaps.b + linetaps.a;
-  columntaps /= columntaps.r + columntaps.g + columntaps.b + columntaps.a;
-
   vec2 xystart = (-1.5 - f) * stepxy + pos;
   vec4 xpos = vec4(xystart.x, xystart.x + stepxy.x, xystart.x + stepxy.x * 2.0, xystart.x + stepxy.x * 3.0);
 
@@ -226,7 +203,7 @@ vec4 process()
     line(xystart.y + stepxy.y * 3.0, xpos, linetaps) * columntaps.a;
 
   rgb.a = m_alpha;
-  //rgb.rgb = abs(textureBicubic(img, stretch(m_cord)).rgb-rgb.rgb)*20.;
-  rgb.rgb = abs(texture_bicubic(img, stretch(m_cord)).rgb-textureBicubic(img, stretch(m_cord)).rgb)*20.;
+  //rgb.rgb = abs(texture_bicubic(img, pos).rgb-rgb.rgb)*20.;
+  //rgb.r = .8;
   return rgb;
 }
