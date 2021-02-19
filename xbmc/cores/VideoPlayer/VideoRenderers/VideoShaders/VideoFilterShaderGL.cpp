@@ -266,3 +266,122 @@ bool DefaultFilterShader::OnEnabled()
   VerifyGLState();
   return true;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////
+// SimpleFilterShader - base class for video filter shaders
+//////////////////////////////////////////////////////////////////////
+
+SimpleFilterShader::SimpleFilterShader(ESCALINGMETHOD method, bool stretch, GLSLOutput *output)
+{
+  m_method = method;
+
+  std::string shadername;
+  std::string defines;
+
+  if (m_method == VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST)
+  {
+    shadername = "gl_scaler_bspline_fast.glsl";
+  }
+  else if (m_method == VS_SCALINGMETHOD_CUBIC_B_SPLINE ||
+           m_method == VS_SCALINGMETHOD_CUBIC_MITCHELL ||
+           m_method == VS_SCALINGMETHOD_CUBIC_CATMULL ||
+           m_method == VS_SCALINGMETHOD_CUBIC_0_075 ||
+           m_method == VS_SCALINGMETHOD_CUBIC_0_1)
+  {
+    shadername = "gl_convolution-4x4_calculated.glsl";
+    defines += "#define XBMC_SCALER_WEIGHT_BICUBIC 1\n";
+
+    if (m_method == VS_SCALINGMETHOD_CUBIC_B_SPLINE)
+    {
+      defines += "const float constantB = 1.0;\n";
+      defines += "const float constantC = 0.0;\n";
+    }
+    else if (m_method == VS_SCALINGMETHOD_CUBIC_MITCHELL)
+    {
+      defines += "const float constantB = 1.0 / 3.0;\n";
+      defines += "const float constantC = 1.0 / 3.0;\n";
+    }
+    else if (m_method == VS_SCALINGMETHOD_CUBIC_CATMULL)
+    {
+      defines += "const float constantB = 0.0;\n";
+      defines += "const float constantC = 0.5;\n";
+    }
+    else if (m_method == VS_SCALINGMETHOD_CUBIC_0_075)
+    {
+      defines += "const float constantB = 0.0;\n";
+      defines += "const float constantC = 0.75;\n";
+    }
+    else if (m_method == VS_SCALINGMETHOD_CUBIC_0_1)
+    {
+      defines += "const float constantB = 0.0;\n";
+      defines += "const float constantC = 1.0;\n";
+    }
+  }
+
+  //don't compile in stretch support when it's not needed
+  if (stretch)
+    defines += "#define XBMC_STRETCH 1\n";
+  else
+    defines += "#define XBMC_STRETCH 0\n";
+
+  // get defines from the output stage if used
+  m_glslOutput = output;
+  if (m_glslOutput) {
+    defines += m_glslOutput->GetDefines();
+  }
+
+  //CLog::Log(LOGDEBUG, "GL: SimpleFilterShader: using %s defines:\n%s", shadername.c_str(), defines.c_str());
+  CLog::Log(LOGERROR, "GL: SimpleFilterShader: using %s defines:\n%s", shadername.c_str(), defines.c_str());
+  PixelShader()->LoadSource(shadername, defines);
+  PixelShader()->AppendSource("gl_output.glsl");
+}
+
+SimpleFilterShader::~SimpleFilterShader()
+{
+  Free();
+  delete m_glslOutput;
+}
+
+void SimpleFilterShader::OnCompiledAndLinked()
+{
+  // obtain shader attribute handles on successful compilation
+  m_hSourceTex = glGetUniformLocation(ProgramHandle(), "img");
+  m_hStepXY = glGetUniformLocation(ProgramHandle(), "stepxy");
+  m_hStretch = glGetUniformLocation(ProgramHandle(), "m_stretch");
+  m_hAlpha = glGetUniformLocation(ProgramHandle(), "m_alpha");
+  m_hProj = glGetUniformLocation(ProgramHandle(), "m_proj");
+  m_hModel = glGetUniformLocation(ProgramHandle(), "m_model");
+  m_hVertex = glGetAttribLocation(ProgramHandle(), "m_attrpos");
+  m_hCoord = glGetAttribLocation(ProgramHandle(), "m_attrcord");
+
+  if (m_glslOutput)
+    m_glslOutput->OnCompiledAndLinked(ProgramHandle());
+}
+
+bool SimpleFilterShader::OnEnabled()
+{
+  glUniform1i(m_hSourceTex, m_sourceTexUnit);
+  glUniform2f(m_hStepXY, m_stepX, m_stepY);
+  glUniform1f(m_hStretch, m_stretch);
+  glUniform1f(m_hAlpha, m_alpha);
+
+  glUniformMatrix4fv(m_hProj, 1, GL_FALSE, m_proj);
+  glUniformMatrix4fv(m_hModel, 1, GL_FALSE, m_model);
+
+  VerifyGLState();
+  if (m_glslOutput) m_glslOutput->OnEnabled();
+  return true;
+}
+
+void SimpleFilterShader::OnDisabled()
+{
+  if (m_glslOutput) m_glslOutput->OnDisabled();
+}
+
+void SimpleFilterShader::Free()
+{
+  if (m_glslOutput) m_glslOutput->Free();
+  BaseVideoFilterShader::Free();
+}

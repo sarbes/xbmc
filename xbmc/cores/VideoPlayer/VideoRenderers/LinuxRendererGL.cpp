@@ -754,6 +754,7 @@ void CLinuxRendererGL::UpdateVideoFilter()
       m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
   }
 
+  GLSLOutput *out;//is this okay?
   switch (m_scalingMethod)
   {
   case VS_SCALINGMETHOD_NEAREST:
@@ -797,11 +798,46 @@ void CLinuxRendererGL::UpdateVideoFilter()
       }
     }
 
+  case VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST:
+  case VS_SCALINGMETHOD_CUBIC_MITCHELL:
+    CLog::Log(LOGERROR, "##############GL: VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST");
+    if (m_renderMethod & RENDER_GLSL)
+    {
+      if (!m_fbo.fbo.Initialize())
+      {
+        CLog::Log(LOGERROR, "GL: Error initializing FBO");
+        break;
+      }
+
+      if (!m_fbo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, m_sourceWidth, m_sourceHeight, GL_RGBA16, GL_SHORT))
+      {
+        CLog::Log(LOGERROR, "GL: Error creating texture and binding to FBO");
+        break;
+      }
+    }
+
+    GLSLOutput *out;
+    out = new GLSLOutput(3,
+        m_useDithering,
+        m_ditherDepth,
+        m_cmsOn ? m_fullRange : false,
+        m_cmsOn ? m_tCLUTTex : 0,
+        m_CLUTsize);
+    m_pVideoFilterShader = new SimpleFilterShader(m_scalingMethod, m_nonLinStretch, out);
+    if (!m_pVideoFilterShader->CompileAndLink())
+    {
+      CLog::Log(LOGERROR, "GL: Error compiling and linking video filter shader");
+      break;
+    }
+
+    SetTextureFilter(GL_LINEAR);
+    m_renderQuality = RQ_MULTIPASS;
+    return;
+
   case VS_SCALINGMETHOD_LANCZOS2:
   case VS_SCALINGMETHOD_SPLINE36:
   case VS_SCALINGMETHOD_LANCZOS3:
   case VS_SCALINGMETHOD_CUBIC_B_SPLINE:
-  case VS_SCALINGMETHOD_CUBIC_MITCHELL:
   case VS_SCALINGMETHOD_CUBIC_CATMULL:
   case VS_SCALINGMETHOD_CUBIC_0_075:
   case VS_SCALINGMETHOD_CUBIC_0_1:
@@ -820,7 +856,6 @@ void CLinuxRendererGL::UpdateVideoFilter()
       }
     }
 
-    GLSLOutput *out;
     out = new GLSLOutput(3,
         m_useDithering,
         m_ditherDepth,
@@ -2561,7 +2596,8 @@ bool CLinuxRendererGL::Supports(ESCALINGMETHOD method)
       method == VS_SCALINGMETHOD_AUTO)
     return true;
 
-  if (method == VS_SCALINGMETHOD_CUBIC_B_SPLINE ||
+  if (method == VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST ||
+      method == VS_SCALINGMETHOD_CUBIC_B_SPLINE ||
       method == VS_SCALINGMETHOD_CUBIC_MITCHELL ||
       method == VS_SCALINGMETHOD_CUBIC_CATMULL ||
       method == VS_SCALINGMETHOD_CUBIC_0_075 ||

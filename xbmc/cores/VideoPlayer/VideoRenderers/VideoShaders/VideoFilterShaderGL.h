@@ -97,6 +97,24 @@ namespace Shaders {
       bool OnEnabled() override;
   };
 
+  class SimpleFilterShader : public BaseVideoFilterShader
+  {
+  public:
+    SimpleFilterShader(ESCALINGMETHOD method, bool stretch, GLSLOutput *output=NULL);
+    ~SimpleFilterShader() override;
+    void OnCompiledAndLinked() override;
+    bool OnEnabled() override;
+    void OnDisabled() override;
+    void Free();
+
+    bool GetTextureFilter(GLint& filter) override { filter = m_method == VS_SCALINGMETHOD_CUBIC_B_SPLINE_FAST ? GL_LINEAR : GL_NEAREST; return true; }
+
+  protected:
+    ESCALINGMETHOD m_method;
+
+    Shaders::GLSLOutput *m_glslOutput;
+  };
+
 } // end namespace
 
 
