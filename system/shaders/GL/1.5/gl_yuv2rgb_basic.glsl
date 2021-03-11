@@ -36,6 +36,8 @@ vec2 stretch(vec2 pos)
     float x = pos.x - 0.5;
     return vec2(mix(2.0 * x * abs(x), x, m_stretch) + 0.5, pos.y);
   #endif
+#elif defined (KODI_PIXELOFFSET)
+  return pos += c_pixelOffset;
 #else
   return pos;
 #endif

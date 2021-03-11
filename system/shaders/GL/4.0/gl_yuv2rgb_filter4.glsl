@@ -37,6 +37,8 @@ vec2 stretch(vec2 pos)
     float x = pos.x - 0.5;
     return vec2(mix(2.0 * x * abs(x), x, m_stretch) + 0.5, pos.y);
   #endif
+#elif defined (KODI_PIXELOFFSET)
+  return pos += c_pixelOffset;
 #else
   return pos;
 #endif
@@ -62,7 +64,7 @@ vec4[4] load4x4_0(sampler2D sampler, vec2 pos)
 
 float filter_0(sampler2D sampler, vec2 coord)
 {
-  vec2 pos = coord + m_step * 0.5;
+  vec2 pos = coord;
   vec2 f = fract(pos / m_step);
 
   vec4 linetaps = texture(m_kernelTex, 1.0 - f.x);

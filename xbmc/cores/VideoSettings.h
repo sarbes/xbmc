@@ -116,6 +116,7 @@ public:
   float m_ToneMapParam;
   int m_Orientation;
   int m_CenterMixLevel; // relative to metadata or default
+  bool m_ScalerPixelOffset; // results in a sharper image when scaling 2x, 3x, ...
 };
 
 class CCriticalSection;

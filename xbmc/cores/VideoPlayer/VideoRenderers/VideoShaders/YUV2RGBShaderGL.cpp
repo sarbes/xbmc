@@ -32,7 +32,9 @@ BaseYUV2RGBGLSLShader::BaseYUV2RGBGLSLShader(bool rect, EShaderFormat format, bo
                                              AVColorPrimaries dstPrimaries, AVColorPrimaries srcPrimaries,
                                              bool toneMap,
                                              int toneMapMethod,
-                                             std::shared_ptr<GLSLOutput> output)
+                                             std::shared_ptr<GLSLOutput> output,
+                                             float pixelOffsetX,
+                                             float pixelOffsetY)
 {
   m_width = 1;
   m_height = 1;
@@ -41,6 +43,8 @@ BaseYUV2RGBGLSLShader::BaseYUV2RGBGLSLShader(bool rect, EShaderFormat format, bo
   m_black = 0.0f;
   m_contrast = 1.0f;
   m_stretch = 0.0f;
+  m_pixelOffsetX = pixelOffsetX;
+  m_pixelOffsetY = pixelOffsetY;
 
   // get defines from the output stage if used
   m_glslOutput = std::move(output);
@@ -99,6 +103,12 @@ BaseYUV2RGBGLSLShader::BaseYUV2RGBGLSLShader(bool rect, EShaderFormat format, bo
       m_defines += "#define KODI_TONE_MAPPING_ACES\n";
     else if (toneMapMethod == VS_TONEMAPMETHOD_HABLE)
       m_defines += "#define KODI_TONE_MAPPING_HABLE\n";
+  }
+
+  if (m_pixelOffsetX > 0.0)
+  {
+    m_defines += "#define KODI_PIXELOFFSET\n";
+    m_defines += "const vec2 c_pixelOffset = vec2(" + std::to_string(m_pixelOffsetX) + ", " + std::to_string(m_pixelOffsetY) + ");\n";
   }
 
   VertexShader()->LoadSource("gl_yuv2rgb_vertex.glsl", m_defines);
@@ -294,9 +304,11 @@ YUV2RGBProgressiveShader::YUV2RGBProgressiveShader(bool rect,
                                                    AVColorPrimaries srcPrimaries,
                                                    bool toneMap,
                                                    int toneMapMethod,
-                                                   std::shared_ptr<GLSLOutput> output)
+                                                   std::shared_ptr<GLSLOutput> output,
+                                                   float pixelOffsetX,
+                                                   float pixelOffsetY)
   : BaseYUV2RGBGLSLShader(
-        rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, toneMapMethod, std::move(output))
+        rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, toneMapMethod, std::move(output), pixelOffsetX, pixelOffsetY)
 {
   PixelShader()->LoadSource("gl_yuv2rgb_basic.glsl", m_defines);
   PixelShader()->AppendSource("gl_output.glsl");
@@ -316,9 +328,11 @@ YUV2RGBFilterShader4::YUV2RGBFilterShader4(bool rect,
                                            bool toneMap,
                                            int toneMapMethod,
                                            ESCALINGMETHOD method,
-                                           std::shared_ptr<GLSLOutput> output)
+                                           std::shared_ptr<GLSLOutput> output,
+                                           float pixelOffsetX,
+                                           float pixelOffsetY)
   : BaseYUV2RGBGLSLShader(
-        rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, toneMapMethod, std::move(output))
+        rect, format, stretch, dstPrimaries, srcPrimaries, toneMap, toneMapMethod, std::move(output), pixelOffsetX, pixelOffsetY)
 {
   m_scaling = method;
   PixelShader()->LoadSource("gl_yuv2rgb_filter4.glsl", m_defines);

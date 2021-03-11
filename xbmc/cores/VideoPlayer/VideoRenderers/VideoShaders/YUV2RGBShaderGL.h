@@ -32,7 +32,9 @@ public:
                         AVColorPrimaries dst, AVColorPrimaries src,
                         bool toneMap,
                         int toneMapMethod,
-                        std::shared_ptr<GLSLOutput> output);
+                        std::shared_ptr<GLSLOutput> output,
+                        float pixelOffsetX,
+                        float pixelOffsetY);
   ~BaseYUV2RGBGLSLShader() override;
 
   void SetField(int field) { m_field  = field; }
@@ -81,6 +83,8 @@ protected:
   float m_black;
   float m_contrast;
   float m_stretch;
+  float m_pixelOffsetX;
+  float m_pixelOffsetY;
 
   const GLfloat *m_proj = nullptr;
   const GLfloat *m_model = nullptr;
@@ -124,7 +128,9 @@ public:
                            AVColorPrimaries dstPrimaries, AVColorPrimaries srcPrimaries,
                            bool toneMap,
                            int toneMapMethod,
-                           std::shared_ptr<GLSLOutput> output);
+                           std::shared_ptr<GLSLOutput> output,
+                           float pixelOffsetX,
+                           float pixelOffsetY);
 };
 
 class YUV2RGBFilterShader4 : public BaseYUV2RGBGLSLShader
@@ -137,7 +143,9 @@ public:
                        bool toneMap,
                        int toneMapMethod,
                        ESCALINGMETHOD method,
-                       std::shared_ptr<GLSLOutput> output);
+                       std::shared_ptr<GLSLOutput> output,
+                       float pixelOffsetX,
+                       float pixelOffsetY);
   ~YUV2RGBFilterShader4() override;
 
 protected:

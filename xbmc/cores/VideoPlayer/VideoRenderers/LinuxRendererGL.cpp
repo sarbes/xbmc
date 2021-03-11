@@ -887,8 +887,25 @@ void CLinuxRendererGL::LoadShaders(int field)
     EShaderFormat shaderFormat = GetShaderFormat();
     std::shared_ptr<GLSLOutput> out;
     m_toneMapMethod = m_videoSettings.m_ToneMapMethod;
+    float pixelOffsetX = 0.0;
+    float pixelOffsetY = 0.0;
     if (m_renderQuality == RQ_SINGLEPASS)
     {
+      //calculates an offset to render in phase when scaling even integer amounts (2x, 4x, ...)
+      if (((unsigned)m_destRect.Width() > m_sourceWidth) && ((unsigned)m_destRect.Height() > m_sourceHeight))
+      {
+        if (((unsigned)m_destRect.Width() % m_sourceWidth) == 0 
+        && (((unsigned)m_destRect.Width() / m_sourceWidth) % 2) == 0
+        && ((unsigned)m_destRect.Height() % m_sourceHeight) == 0 
+        && (((unsigned)m_destRect.Height() / m_sourceHeight) % 2) == 0
+        && ((unsigned)m_destRect.Height() % m_sourceHeight) == 0 
+        && (((unsigned)m_destRect.Height() / m_sourceHeight) % 2) == 0)
+        {
+          pixelOffsetX = 0.5 / (float)m_destRect.Width();
+          pixelOffsetY = 0.5 / (float)m_destRect.Height();
+        }
+      }
+      
       out = std::make_shared<GLSLOutput>(GLSLOutput(4, m_useDithering, m_ditherDepth,
                                                     m_cmsOn ? m_fullRange : false,
                                                     m_cmsOn ? m_tCLUTTex : 0,
@@ -901,7 +918,10 @@ void CLinuxRendererGL::LoadShaders(int field)
                                                 AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries,
                                                 m_toneMap,
                                                 m_toneMapMethod,
-                                                m_scalingMethod, out);
+                                                m_scalingMethod,
+                                                out,
+                                                pixelOffsetX,
+                                                pixelOffsetY);
         if (!m_cmsOn)
           m_pYUVShader->SetConvertFullColorRange(m_fullRange);
 
@@ -925,7 +945,7 @@ void CLinuxRendererGL::LoadShaders(int field)
     {
       m_pYUVShader = new YUV2RGBProgressiveShader(m_textureTarget == GL_TEXTURE_RECTANGLE, shaderFormat,
                                                   m_nonLinStretch && m_renderQuality == RQ_SINGLEPASS,
-                                                  AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap, m_toneMapMethod, out);
+                                                  AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap, m_toneMapMethod, out, pixelOffsetX, pixelOffsetY);
 
       if (!m_cmsOn)
         m_pYUVShader->SetConvertFullColorRange(m_fullRange);
