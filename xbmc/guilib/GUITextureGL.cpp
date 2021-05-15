@@ -84,37 +84,37 @@ void CGUITextureGL::Begin(UTILS::Color color)
   {
     if (m_blendMode == TEXTURE_BLENDMODE_ADD)
     {
-      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
       glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_SUBTRACT)
     {
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-      glBlendEquationSeparate(GL_FUNC_SUBTRACT, GL_MAX);
+      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
+      glBlendEquationSeparate(GL_FUNC_SUBTRACT, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_REVERSE_SUBTRACT)
     {
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-      glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_MAX);
+      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
+      glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_MULTIPLY)
     {
-      glBlendFuncSeparate(GL_ZERO, GL_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendFuncSeparate(GL_ZERO, GL_SRC_COLOR, GL_ZERO, GL_ONE);
       glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_2X_MULTIPLY)
     {
-      glBlendFuncSeparate(GL_DST_COLOR, GL_SRC_COLOR, GL_ONE, GL_ZERO);
+      glBlendFuncSeparate(GL_DST_COLOR, GL_SRC_COLOR, GL_ZERO, GL_ONE);
       glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_DARKEN)
     {
-      glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-      glBlendEquation(GL_MIN);
+      glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ZERO, GL_ONE);
+      glBlendEquationSeparate(GL_MIN, GL_FUNC_ADD);
     }
     else if (m_blendMode == TEXTURE_BLENDMODE_LIGHTEN)
     {
-      glBlendFuncSeparate(GL_SRC_ALPHA, GL_DST_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+      glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ZERO, GL_ONE);
       glBlendEquationSeparate(GL_MAX, GL_FUNC_ADD);
     }
 
