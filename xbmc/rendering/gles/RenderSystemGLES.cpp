@@ -640,7 +640,7 @@ GLint CRenderSystemGLES::GUIShaderGetBrightness()
   return -1;
 }
 
-GLint CRenderSystemGL::ShaderGetSize()
+GLint CRenderSystemGLES::ShaderGetSize()
 {
   if (m_pShader[m_method])
     return m_pShader[m_method]->GetSizeLoc();
@@ -648,7 +648,7 @@ GLint CRenderSystemGL::ShaderGetSize()
   return -1;
 }
 
-GLint CRenderSystemGL::ShaderGetPosition()
+GLint CRenderSystemGLES::ShaderGetPosition()
 {
   if (m_pShader[m_method])
     return m_pShader[m_method]->GetPositionLoc();
@@ -673,7 +673,7 @@ GLint CRenderSystemGLES::GUIShaderGetModel()
 // -----------------------------------------------------------------------------
 // primitives
 // -----------------------------------------------------------------------------
-void CRenderSystemGL::InitialisePrimitives()
+void CRenderSystemGLES::InitialisePrimitives()
 {
   vertex vertexTri[3];
   vertexTri[0] = { 0.,  0.};
