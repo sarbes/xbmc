@@ -196,12 +196,12 @@ void CGUITextureGLES::End()
     */
   }
 
-  //GLint x = GLint(m_coord[0].u);
-  //GLint y = 1920 - GLint(m_coord[2].v);
-  //glScissor(x, y, abs(m_coord[0].u - m_coord[1].u), abs(m_coord[0].v - m_coord[3].v));
-  //glEnable(GL_SCISSOR_TEST);
+  GLint x = GLint(m_coord[0].u);
+  GLint y = 1080 - GLint(m_coord[2].v);
+  glScissor(x, y, abs(m_coord[0].u - m_coord[1].u), abs(m_coord[0].v - m_coord[3].v));
+  glEnable(GL_SCISSOR_TEST);
   glDrawArrays(GL_TRIANGLES, 0, 3);
-  //glDisable(GL_SCISSOR_TEST);
+  glDisable(GL_SCISSOR_TEST);
 
 
   //if (m_diffuse.size())
