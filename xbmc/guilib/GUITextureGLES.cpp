@@ -193,8 +193,8 @@ void CGUITextureGLES::End()
 
     glDisableVertexAttribArray(posLoc);
     glDisableVertexAttribArray(tex0Loc);
+    */
   }
-  */
 
   GLint x = GLint(m_coord[0].u);
   GLint y = 1920 - GLint(m_coord[2].v);
