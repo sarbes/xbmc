@@ -32,6 +32,8 @@ public:
   GLint GetContrastLoc() { return m_hContrast; }
   GLint GetBrightnessLoc() { return m_hBrightness; }
   GLint GetModelLoc() { return m_hModel; }
+  GLint GetSizeLoc() {return m_hSize; }
+  GLint GetPositionLoc() {return m_hPosition; }
   bool HardwareClipIsPossible() { return m_clipPossible; }
   GLfloat GetClipXFactor() { return m_clipXFactor; }
   GLfloat GetClipXOffset() { return m_clipXOffset; }
@@ -44,6 +46,8 @@ protected:
   GLint m_hUniCol = 0;
   GLint m_hProj = 0;
   GLint m_hModel = 0;
+  GLint m_hSize = 0;
+  GLint m_hPosition = 0;
   GLint m_hPos = 0;
   GLint m_hCol = 0;
   GLint m_hCord0 = 0;

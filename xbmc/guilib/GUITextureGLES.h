@@ -42,6 +42,20 @@ protected:
 private:
   CGUITextureGLES(const CGUITextureGLES& texture) = default;
 
+
+  struct uv
+  {
+    float u, v;
+  };
+  struct coord
+  {
+    double u, v;
+  };
+
+  uv m_uvTex[3];
+  coord m_coord[4];
+  uv m_uvDiffuse[3];
+
   std::array<GLubyte, 4> m_col;
 
   PackedVertices m_packedVertices;

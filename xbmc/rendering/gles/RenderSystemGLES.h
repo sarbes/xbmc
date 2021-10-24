@@ -71,6 +71,11 @@ public:
 
   std::string GetShaderPath(const std::string &filename) override { return "GLES/2.0/"; }
 
+  GLuint GetDefaultTriVertex() const { return m_defaultTriVertex; }
+  GLuint GetDefaultQuadVertex() const { return m_defaultQuadVertex; }
+  GLuint GetDefaultTriUV() const { return m_defaultTriUV; }
+  GLuint GetDefaultQuadUV() const { return m_defaultQuadUV; }
+
   void InitialiseShaders();
   void ReleaseShaders();
   void EnableGUIShader(ESHADERMETHOD method);
@@ -87,11 +92,14 @@ public:
   GLint GUIShaderGetContrast();
   GLint GUIShaderGetBrightness();
   GLint GUIShaderGetModel();
+  GLint ShaderGetSize();
+  GLint ShaderGetPosition();
 
 protected:
   virtual void SetVSyncImpl(bool enable) = 0;
   virtual void PresentRenderImpl(bool rendered) = 0;
   void CalculateMaxTexturesize();
+  void InitialisePrimitives();
 
   bool m_bVsyncInit{false};
   int m_width;
@@ -103,5 +111,19 @@ protected:
   ESHADERMETHOD m_method = SM_DEFAULT;
 
   GLint      m_viewPort[4];
+
+  struct vertex
+  {
+    float x, y;
+  };
+  struct uv
+  {
+    float x, y;
+  };
+
+  GLuint m_defaultTriVertex;
+  GLuint m_defaultQuadVertex;
+  GLuint m_defaultTriUV;
+  GLuint m_defaultQuadUV;
 };
 

@@ -92,7 +92,7 @@ void CGUITextureGL::Begin(UTILS::Color color)
   m_packedVertices.clear();
   m_idx.clear();
 }
-
+/*
 void CGUITextureGL::End()
 {
   if (m_packedVertices.size())
@@ -151,10 +151,108 @@ void CGUITextureGL::End()
   glEnable(GL_BLEND);
 
   m_renderSystem->DisableShader();
+}*/
+
+void CGUITextureGL::End()
+{
+  if (m_packedVertices.size())
+  {
+    GLint posLoc  = m_renderSystem->ShaderGetPos();
+    GLint tex0Loc = m_renderSystem->ShaderGetCoord0();
+    GLint tex1Loc = m_renderSystem->ShaderGetCoord1();
+    GLint uniColLoc = m_renderSystem->ShaderGetUniCol();
+
+    GLint sizeLoc = m_renderSystem->ShaderGetSize();
+    GLint positionLoc = m_renderSystem->ShaderGetPosition();
+
+    GLint defaultTriVertex = m_renderSystem->GetDefaultTriVertex();
+    GLint defaultTriUV = m_renderSystem->GetDefaultTriUV();
+    //GLint defaultTriLoc = m_renderSystem->ShaderGetTriLoc();
+    /*
+    CLog::LogF(LOGERROR, "m_coord[0].uv {}, {}", m_coord[0].u, m_coord[0].v);
+    CLog::LogF(LOGERROR, "m_coord[1].uv {}, {}", m_coord[1].u, m_coord[1].v);
+    CLog::LogF(LOGERROR, "m_coord[2].uv {}, {}", m_coord[2].u, m_coord[2].v);
+    CLog::LogF(LOGERROR, "m_coord[3].uv {}, {}", m_coord[3].u, m_coord[3].v);
+    */
+    //GLuint VertexVBO;
+    //GLuint IndexVBO;
+
+    //glGenBuffers(1, &VertexVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, defaultTriVertex);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*m_packedVertices.size(), &m_packedVertices[0], GL_STATIC_DRAW);
+
+    if (uniColLoc >= 0)
+    {
+      glUniform4f(uniColLoc,(m_col[0] / 255.0f), (m_col[1] / 255.0f), (m_col[2] / 255.0f), (m_col[3] / 255.0f));
+    }
+
+    glUniform2f(sizeLoc,(abs(m_coord[0].u - m_coord[1].u) / (1920./2.)), (abs(m_coord[0].v - m_coord[3].v) / (1080./2.)));// * (16./9.));
+    //glUniform2f(positionLoc,m_vertex.x1, m_vertex.x2);
+    //glUniform2f(positionLoc,(m_coord[0].u / 1920.) - 1., (m_coord[0].v / 1080.) - 1.);
+    //glUniform2f(positionLoc,(m_coord[0].u / 1920.) - 1., (m_coord[0].v / 1080.));
+    //glUniform2f(sizeLoc,(1.), (1.));
+    glUniform2f(positionLoc,(-1.) + (m_coord[0].u / 1920.),(1) - (m_coord[0].v / 1080.));
+    //glUniform2f(positionLoc,(m_vertex.Width() / (1920.) - 1.) + m_coord[0].u / (1920.), (m_vertex.Height() / (1080.) - 1.) + ( 2. - m_coord[2].v / 1080.));
+    if (m_diffuse.size())
+    {
+      glVertexAttribPointer(tex1Loc, 2, GL_FLOAT, 0, sizeof(PackedVertex),
+                            reinterpret_cast<const GLvoid*>(offsetof(PackedVertex, u2)));
+      glEnableVertexAttribArray(tex1Loc);
+    }
+
+    //glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, 0, &defaultTriVertex);
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(posLoc);
+    
+
+    // UV coordinates
+    //GLuint UVVBO;
+    //glGenBuffers(1, &VertexVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, defaultTriUV);
+    glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, 0, 0, 0);
+    //glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(tex0Loc);
+    
+    //glGenBuffers(1, &IndexVBO);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexVBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*m_idx.size(), m_idx.data(), GL_STATIC_DRAW);
+
+    //glDrawElements(GL_TRIANGLES, m_packedVertices.size()*6 / 4, GL_UNSIGNED_SHORT, 0);
+    //glScissor(GLint(m_coord[0].u), GLint(m_coord[0].v) - GLint(abs(m_coord[0].v - m_coord[3].v)), GLint(abs(m_coord[0].u - m_coord[1].u)), GLint(abs(m_coord[0].v - m_coord[3].v)));
+    //glScissor(GLint(m_coord[0].u), GLint(m_coord[0].v), GLint(500.), GLint(500.));
+
+    GLint x = GLint(m_coord[0].u);
+    GLint y = 2160 - GLint(m_coord[2].v);
+    glScissor(x, y, abs(m_coord[0].u - m_coord[1].u), abs(m_coord[0].v - m_coord[3].v));
+    glEnable(GL_SCISSOR_TEST);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDisable(GL_SCISSOR_TEST);
+
+    if (m_diffuse.size())
+      glDisableVertexAttribArray(tex1Loc);
+
+    glDisableVertexAttribArray(posLoc);
+    glDisableVertexAttribArray(tex0Loc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glDeleteBuffers(1, &VertexVBO);
+    //glDeleteBuffers(1, &IndexVBO);
+  }
+
+  if (m_diffuse.size())
+    glActiveTexture(GL_TEXTURE0);
+  glEnable(GL_BLEND);
+
+  m_renderSystem->DisableShader();
 }
 
 void CGUITextureGL::Draw(float *x, float *y, float *z, const CRect &texture, const CRect &diffuse, int orientation)
 {
+  m_uvTex[0] = {texture.x1, texture.y1};
+  m_uvTex[1] = {texture.x1, texture.y2 * 2.};
+  m_uvTex[2] = {texture.x2 * 2., texture.y1};
   PackedVertex vertices[4];
 
   // Setup texture coordinates
@@ -230,6 +328,8 @@ void CGUITextureGL::Draw(float *x, float *y, float *z, const CRect &texture, con
     vertices[i].x = x[i];
     vertices[i].y = y[i];
     vertices[i].z = z[i];
+    m_coord[i].u = x[i];
+    m_coord[i].v = y[i];
     m_packedVertices.push_back(vertices[i]);
   }
 

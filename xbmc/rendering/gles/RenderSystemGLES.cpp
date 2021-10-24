@@ -98,6 +98,8 @@ bool CRenderSystemGLES::InitRenderSystem()
 
   m_bRenderCreated = true;
 
+  InitialisePrimitives();
+
   InitialiseShaders();
 
   return true;
@@ -392,7 +394,7 @@ void CRenderSystemGLES::InitialiseShaders()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_default.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE].reset(new CGLESShader("gles_shader_texture.frag", defines));
+  m_pShader[SM_TEXTURE].reset(new CGLESShader("gles_shader_ortho.vert", "gles_shader_texture.frag", defines));
   if (!m_pShader[SM_TEXTURE]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE]->Free();
@@ -416,7 +418,7 @@ void CRenderSystemGLES::InitialiseShaders()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_fonts.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE_NOBLEND].reset(new CGLESShader("gles_shader_texture_noblend.frag", defines));
+  m_pShader[SM_TEXTURE_NOBLEND].reset(new CGLESShader("gles_shader_ortho.vert", "gles_shader_texture_noblend.frag", defines));
   if (!m_pShader[SM_TEXTURE_NOBLEND]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE_NOBLEND]->Free();
@@ -638,6 +640,22 @@ GLint CRenderSystemGLES::GUIShaderGetBrightness()
   return -1;
 }
 
+GLint CRenderSystemGL::ShaderGetSize()
+{
+  if (m_pShader[m_method])
+    return m_pShader[m_method]->GetSizeLoc();
+
+  return -1;
+}
+
+GLint CRenderSystemGL::ShaderGetPosition()
+{
+  if (m_pShader[m_method])
+    return m_pShader[m_method]->GetPositionLoc();
+
+  return -1;
+}
+
 bool CRenderSystemGLES::SupportsStereo(RENDER_STEREO_MODE mode) const
 {
   return CRenderSystemBase::SupportsStereo(mode);
@@ -649,4 +667,47 @@ GLint CRenderSystemGLES::GUIShaderGetModel()
     return m_pShader[m_method]->GetModelLoc();
 
   return -1;
+}
+
+
+// -----------------------------------------------------------------------------
+// primitives
+// -----------------------------------------------------------------------------
+void CRenderSystemGL::InitialisePrimitives()
+{
+  vertex vertexTri[3];
+  vertexTri[0] = { 0.,  0.};
+  vertexTri[1] = { 1.,  0.};
+  vertexTri[2] = { 0., -1.};
+  /*
+  vertexTri[0] = {-1., 1.};
+  vertexTri[1] = { 3., 1.};
+  vertexTri[2] = {-1.,-3.};
+  */
+
+  glGenBuffers(1, &m_defaultTriVertex);
+  glBindBuffer(GL_ARRAY_BUFFER, m_defaultTriVertex);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex)*3, &vertexTri[0], GL_STATIC_DRAW);
+
+  uv uvTri[3];
+  uvTri[0] = { 0., 0.};
+  uvTri[1] = { 2., 0.};
+  uvTri[2] = { 0., 2.};
+
+  glGenBuffers(1, &m_defaultTriUV);
+  glBindBuffer(GL_ARRAY_BUFFER, m_defaultTriUV);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(uv)*3, &uvTri[0], GL_STATIC_DRAW);
+
+  /*
+  vertex vertexQuad[4];
+
+  vertexTri[0] = {-1., 1., 0.};
+  vertexTri[1] = { 2., 1., 0.};
+  vertexTri[2] = {-1.,-2., 0.};
+
+  glGenBuffers(1, &m_defaultTriVertex);
+  glBindBuffer(GL_ARRAY_BUFFER, m_defaultTriVertex);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex)*3, &vertexTri[0], GL_STATIC_DRAW);
+  */
+  //glGenBuffers(1, 0);
 }

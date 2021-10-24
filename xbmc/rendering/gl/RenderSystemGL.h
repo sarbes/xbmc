@@ -71,6 +71,11 @@ public:
   void GetGLVersion(int& major, int& minor);
   void GetGLSLVersion(int& major, int& minor);
 
+  GLuint GetDefaultTriVertex() const { return m_defaultTriVertex; }
+  GLuint GetDefaultQuadVertex() const { return m_defaultQuadVertex; }
+  GLuint GetDefaultTriUV() const { return m_defaultTriUV; }
+  GLuint GetDefaultQuadUV() const { return m_defaultQuadUV; }
+
   void ResetGLErrors();
 
   // shaders
@@ -82,6 +87,8 @@ public:
   GLint ShaderGetCoord1();
   GLint ShaderGetUniCol();
   GLint ShaderGetModel();
+  GLint ShaderGetSize();
+  GLint ShaderGetPosition();
 
 protected:
   virtual void SetVSyncImpl(bool enable) = 0;
@@ -89,6 +96,7 @@ protected:
   void CalculateMaxTexturesize();
   void InitialiseShaders();
   void ReleaseShaders();
+  void InitialisePrimitives();
 
   bool m_bVsyncInit = false;
   int m_width;
@@ -104,4 +112,18 @@ protected:
   std::array<std::unique_ptr<CGLShader>, SM_MAX> m_pShader;
   ESHADERMETHOD m_method = SM_DEFAULT;
   GLuint m_vertexArray = GL_NONE;
+
+  struct vertex
+  {
+    float x, y;
+  };
+  struct uv
+  {
+    float x, y;
+  };
+
+  GLuint m_defaultTriVertex;
+  GLuint m_defaultQuadVertex;
+  GLuint m_defaultTriUV;
+  GLuint m_defaultQuadUV;
 };

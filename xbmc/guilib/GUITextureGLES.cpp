@@ -101,6 +101,7 @@ void CGUITextureGLES::Begin(UTILS::Color color)
   m_packedVertices.clear();
 }
 
+/*
 void CGUITextureGLES::End()
 {
   if (m_packedVertices.size())
@@ -139,10 +140,87 @@ void CGUITextureGLES::End()
   glEnable(GL_BLEND);
   m_renderSystem->DisableGUIShader();
 }
+*/
+
+void CGUITextureGLES::End()
+{
+  if (m_packedVertices.size())
+  {
+    GLint posLoc  = m_renderSystem->GUIShaderGetPos();
+    GLint tex0Loc = m_renderSystem->GUIShaderGetCoord0();
+    GLint tex1Loc = m_renderSystem->GUIShaderGetCoord1();
+    GLint uniColLoc = m_renderSystem->GUIShaderGetUniCol();
+
+    GLint sizeLoc = m_renderSystem->ShaderGetSize();
+    GLint positionLoc = m_renderSystem->ShaderGetPosition();
+
+    GLint defaultTriVertex = m_renderSystem->GetDefaultTriVertex();
+    GLint defaultTriUV = m_renderSystem->GetDefaultTriUV();
+
+    if(uniColLoc >= 0)
+    {
+      glUniform4f(uniColLoc,(m_col[0] / 255.0f), (m_col[1] / 255.0f), (m_col[2] / 255.0f), (m_col[3] / 255.0f));
+    }
+
+    glUniform2f(sizeLoc,(abs(m_coord[0].u - m_coord[1].u) / (1920./4.)), (abs(m_coord[0].v - m_coord[3].v) / (1080./4.)));// * (16./9.));
+    glUniform2f(positionLoc,(-1.) + (m_coord[0].u / (1920./2.)),(1) - (m_coord[0].v / (1080./2.)));
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, defaultTriVertex);
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(posLoc);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, defaultTriUV);
+    glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(tex0Loc);
+
+    /*'
+    if(m_diffuse.size())
+    {
+      glVertexAttribPointer(tex1Loc, 2, GL_FLOAT, 0, sizeof(PackedVertex), (char*)&m_packedVertices[0] + offsetof(PackedVertex, u2));
+      glEnableVertexAttribArray(tex1Loc);
+    }
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), (char*)&m_packedVertices[0] + offsetof(PackedVertex, x));
+    glEnableVertexAttribArray(posLoc);
+    glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, 0, sizeof(PackedVertex), (char*)&m_packedVertices[0] + offsetof(PackedVertex, u1));
+    glEnableVertexAttribArray(tex0Loc);
+
+    glDrawElements(GL_TRIANGLES, m_packedVertices.size()*6 / 4, GL_UNSIGNED_SHORT, m_idx.data());
+
+    if (m_diffuse.size())
+      glDisableVertexAttribArray(tex1Loc);
+
+    glDisableVertexAttribArray(posLoc);
+    glDisableVertexAttribArray(tex0Loc);
+  }
+  */
+
+  GLint x = GLint(m_coord[0].u);
+  GLint y = 1920 - GLint(m_coord[2].v);
+  glScissor(x, y, abs(m_coord[0].u - m_coord[1].u), abs(m_coord[0].v - m_coord[3].v));
+  glEnable(GL_SCISSOR_TEST);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glDisable(GL_SCISSOR_TEST);
+
+
+  //if (m_diffuse.size())
+  //  glActiveTexture(GL_TEXTURE0);
+  glEnable(GL_BLEND);
+
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  m_renderSystem->DisableGUIShader();
+}
+
+
 
 void CGUITextureGLES::Draw(float *x, float *y, float *z, const CRect &texture, const CRect &diffuse, int orientation)
 {
   PackedVertex vertices[4];
+  m_uvTex[0] = {texture.x1, texture.y1};
+  m_uvTex[1] = {texture.x1, texture.y2 * 2.};
+  m_uvTex[2] = {texture.x2 * 2., texture.y1};
 
   // Setup texture coordinates
   //TopLeft
@@ -211,6 +289,8 @@ void CGUITextureGLES::Draw(float *x, float *y, float *z, const CRect &texture, c
     vertices[i].x = x[i];
     vertices[i].y = y[i];
     vertices[i].z = z[i];
+    m_coord[i].u = x[i];
+    m_coord[i].v = y[i];
     m_packedVertices.push_back(vertices[i]);
   }
 

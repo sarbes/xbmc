@@ -42,6 +42,19 @@ private:
     float u2, v2;
   };
 
+  struct uv
+  {
+    float u, v;
+  };
+  struct coord
+  {
+    double u, v;
+  };
+
+  uv m_uvTex[3];
+  coord m_coord[4];
+  uv m_uvDiffuse[3];
+
   std::vector<PackedVertex> m_packedVertices;
   std::vector<GLushort> m_idx;
   CRenderSystemGL *m_renderSystem;
