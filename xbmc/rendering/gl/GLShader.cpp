@@ -23,6 +23,7 @@ CGLShader::CGLShader(const char* shader, const std::string& prefix)
   m_model  = nullptr;
   m_clipPossible = false;
 
+  m_tmp_defaultshader = true;
   VertexShader()->LoadSource("gl_shader_vert.glsl");
   PixelShader()->LoadSource(shader, prefix);
 }
@@ -69,6 +70,9 @@ void CGLShader::OnCompiledAndLinked()
 
 bool CGLShader::OnEnabled()
 {
+  if (!m_tmp_defaultshader)
+    return true;
+  
   // This is called after glUseProgram()
 
   const GLfloat *projMatrix = glMatrixProject.Get();

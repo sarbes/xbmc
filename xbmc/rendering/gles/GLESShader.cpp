@@ -22,6 +22,7 @@ CGLESShader::CGLESShader(const char* shader, const std::string& prefix)
   m_model = nullptr;
   m_clipPossible = false;
 
+  m_tmp_defaultshader = true;
   VertexShader()->LoadSource("gles_shader.vert");
   PixelShader()->LoadSource(shader, prefix);
 }
@@ -81,6 +82,8 @@ void CGLESShader::OnCompiledAndLinked()
 
 bool CGLESShader::OnEnabled()
 {
+  if (!m_tmp_defaultshader)
+    return true;
   // This is called after glUseProgram()
 
   const GLfloat *projMatrix = glMatrixProject.Get();

@@ -842,5 +842,5 @@ void CRenderSystemGL::InitialisePrimitives()
   glBindBuffer(GL_ARRAY_BUFFER, m_defaultTriVertex);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertex)*3, &vertexTri[0], GL_STATIC_DRAW);
   */
-  glGenBuffers(1, 0);
+  //glGenBuffers(1, 0);
 }

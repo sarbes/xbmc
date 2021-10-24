@@ -58,6 +58,8 @@ protected:
   GLint m_hContrast = 0;
   GLint m_hBrightness = 0;
 
+  bool m_tmp_defaultshader = false;
+
   const GLfloat *m_proj;
   const GLfloat *m_model;
 

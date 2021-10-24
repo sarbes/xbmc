@@ -48,6 +48,8 @@ protected:
   GLint m_hCord0 = 0;
   GLint m_hCord1 = 0;
 
+  bool m_tmp_defaultshader = false;
+
   const GLfloat *m_proj = nullptr;
   const GLfloat *m_model = nullptr;
 
