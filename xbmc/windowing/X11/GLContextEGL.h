@@ -40,6 +40,7 @@ protected:
   EGLConfig GetEGLConfig(EGLDisplay eglDisplay, XVisualInfo *vInfo);
   PFNEGLGETSYNCVALUESCHROMIUMPROC m_eglGetSyncValuesCHROMIUM = nullptr;
   PFNEGLGETPLATFORMDISPLAYEXTPROC m_eglGetPlatformDisplayEXT = nullptr;
+  PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC m_eglSwapBuffersWithDamageEXT = nullptr;
 
   struct Sync
   {

@@ -594,5 +594,6 @@ bool CEGLContextUtils::TrySwapBuffers()
     return false;
   }
 
-  return (eglSwapBuffers(m_eglDisplay, m_eglSurface) == EGL_TRUE);
+  //return (eglSwapBuffers(m_eglDisplay, m_eglSurface) == EGL_TRUE);
+  m_eglSwapBuffersWithDamageEXT(m_eglDisplay, m_eglSurface, nullptr, 0);
 }

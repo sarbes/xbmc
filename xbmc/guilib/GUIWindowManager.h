@@ -200,6 +200,7 @@ public:
   void AddMsgTarget( IMsgTargetCallback* pMsgTarget );
   int GetActiveWindow() const;
   int GetActiveWindowOrDialog() const;
+  CDirtyRegionList GetDirtyRegions() const {return m_dirtyregions;}
   bool HasModalDialog(bool ignoreClosing) const;
   bool HasVisibleModalDialog() const;
   bool IsDialogTopmost(int id, bool modal = false) const;

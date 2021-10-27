@@ -10,6 +10,9 @@
 #if !defined(GL_GLEXT_PROTOTYPES)
   #define GL_GLEXT_PROTOTYPES
 #endif
+#if !defined(EGL_EGLEXT_PROTOTYPES)
+  #define EGL_EGLEXT_PROTOTYPES
+#endif
 
 #include <clocale>
 #include "system_gl.h"
@@ -20,6 +23,9 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
 #include "threads/SingleLock.h"
+#include "guilib/GUIComponent.h"
+#include "guilib/GUIWindowManager.h"
+#include "guilib/DirtyRegionTracker.h"
 
 #define EGL_NO_CONFIG (EGLConfig)0
 
@@ -425,7 +431,21 @@ void CGLContextEGL::SwapBuffers()
     m_eglGetSyncValuesCHROMIUM(m_eglDisplay, m_eglSurface, &ust1, &msc1, &sbc1);
   }
 
-  eglSwapBuffers(m_eglDisplay, m_eglSurface);
+  //CDirtyRegionList regions = CServiceBroker::GetGui()->GetWindowManager()->GetDirtyRegions();
+  CDirtyRegionList regions = CServiceBroker::GetGUI()->GetWindowManager().GetDirtyRegions();
+  CLog::Log(LOGDEBUG, "guilib: newframe");
+
+  int i = regions.size() - 1;
+  while (i >= 0)
+	{
+    CLog::Log(LOGDEBUG, "guilib: region {}, {}, {}, {},", regions[i].x1, regions[i].y1, regions[i].Height(), regions[i].Width());
+    i--;
+  }
+
+  if (m_eglSwapBuffersWithDamageEXT)
+    m_eglSwapBuffersWithDamageEXT(m_eglDisplay, m_eglSurface, nullptr, 0);
+  else
+    eglSwapBuffers(m_eglDisplay, m_eglSurface);
 
   if (!m_eglGetSyncValuesCHROMIUM)
     return;

@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "system_egl.h"
+#include <EGL/eglext.h>
 
 class CEGLUtils
 {
@@ -229,4 +230,5 @@ private:
   EGLSurface m_eglSurface{EGL_NO_SURFACE};
   EGLContext m_eglContext{EGL_NO_CONTEXT};
   EGLConfig m_eglConfig{}, m_eglHDRConfig{};
+  PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC m_eglSwapBuffersWithDamageEXT = nullptr;
 };
