@@ -22,6 +22,7 @@
 CGUIWindowScreensaver::CGUIWindowScreensaver(void)
   : CGUIWindow(WINDOW_SCREENSAVER, "")
 {
+  ControlType = GUICONTROL_WINDOW_RENDERABLE;
 }
 
 void CGUIWindowScreensaver::Process(unsigned int currentTime, CDirtyRegionList &regions)

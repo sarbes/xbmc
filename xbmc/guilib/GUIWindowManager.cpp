@@ -166,7 +166,7 @@ CGUIWindowManager::~CGUIWindowManager() = default;
 
 void CGUIWindowManager::Initialize()
 {
-  m_tracker.SelectAlgorithm();
+  //m_tracker.SelectAlgorithm();//
 
   m_initialized = true;
 
@@ -1198,8 +1198,9 @@ void CGUIWindowManager::Process(unsigned int currentTime)
       pWindow->DoProcess(currentTime, m_dirtyregions);
   }
 
-  for (auto& itr : m_dirtyregions)
-    m_tracker.MarkDirtyRegion(itr);
+  CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegions(m_dirtyregions);
+  //for (auto& itr : m_dirtyregions)
+  //  m_tracker.MarkDirtyRegion(itr);//
 }
 
 void CGUIWindowManager::MarkDirty()
@@ -1209,7 +1210,8 @@ void CGUIWindowManager::MarkDirty()
 
 void CGUIWindowManager::MarkDirty(const CRect& rect)
 {
-  m_tracker.MarkDirtyRegion(CDirtyRegion(rect));
+  //m_tracker.MarkDirtyRegion(CDirtyRegion(rect));
+  CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(rect);
 
   CGUIWindow* pWindow = GetWindow(GetActiveWindow());
   if (pWindow)
@@ -1265,7 +1267,8 @@ bool CGUIWindowManager::Render()
   assert(CServiceBroker::GetAppMessenger()->IsProcessThread());
   CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
 
-  CDirtyRegionList dirtyRegions = m_tracker.GetDirtyRegions();
+  //CDirtyRegionList dirtyRegions = m_tracker.GetDirtyRegions();
+  CDirtyRegionList dirtyRegions = CServiceBroker::GetWinSystem()->GetGfxContext().GetDirtyRegions();
 
   bool hasRendered = false;
   // If we visualize the regions we will always render the entire viewport
@@ -1299,11 +1302,12 @@ bool CGUIWindowManager::Render()
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions)
   {
     CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderingResolution(CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo(), false);
-    const CDirtyRegionList &markedRegions  = m_tracker.GetMarkedRegions();
+    //const CDirtyRegionList &markedRegions  = m_tracker.GetMarkedRegions();
+    const CDirtyRegionList &markedRegions = CServiceBroker::GetWinSystem()->GetGfxContext().GetMarkedRegions();
     for (const auto& i : markedRegions)
-      CGUITexture::DrawQuad(i, 0x0fff0000);
-    for (const auto& i : dirtyRegions)
-      CGUITexture::DrawQuad(i, 0x4c00ff00);
+      CGUITexture::DrawQuad(i, 0xffff0000);
+    //for (const auto& i : dirtyRegions)
+    //  CGUITexture::DrawQuad(i, 0x4c00ff00);
   }
 
   return hasRendered;
@@ -1311,7 +1315,8 @@ bool CGUIWindowManager::Render()
 
 void CGUIWindowManager::AfterRender()
 {
-  m_tracker.CleanMarkedRegions();
+  //m_tracker.CleanMarkedRegions();
+  CServiceBroker::GetWinSystem()->GetGfxContext().CleanMarkedRegions();
 
   CGUIWindow* pWindow = GetWindow(GetActiveWindow());
   if (pWindow)

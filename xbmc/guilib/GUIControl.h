@@ -110,8 +110,8 @@ public:
   virtual bool OnInfo();
   virtual void OnNextControl();
   virtual void OnPrevControl();
-  virtual void OnFocus() {}
-  virtual void OnUnFocus() {}
+  virtual void OnFocus() {};
+  virtual void OnUnFocus();
 
   /*! \brief React to a mouse event
 
@@ -179,6 +179,8 @@ public:
 
   void MarkDirtyRegion(const unsigned int dirtyState = DIRTY_STATE_CONTROL);
   bool IsControlDirty() const { return m_controlDirtyState != 0; }
+  bool IsControlDirtyChild() const { return (m_controlDirtyState & DIRTY_STATE_CONTROL); }
+  bool IsRenderable() const;
 
   /*! \brief return the render region in screen coordinates of this control
    */
@@ -222,7 +224,8 @@ public:
   virtual void UpdateVisibility(const CGUIListItem *item);
   virtual void SetInitialVisibility();
   virtual void SetEnabled(bool bEnable);
-  virtual void SetInvalid() { m_bInvalidated = true; }
+  //Fixes scrollbar in confluence settings
+  virtual void SetInvalid() { m_bInvalidated = true; MarkDirtyRegion();}
   virtual void SetPulseOnSelect(bool pulse) { m_pulseOnSelect = pulse; }
   virtual std::string GetDescription() const { return ""; }
   virtual std::string GetDescriptionByIndex(int index) const { return ""; }
@@ -291,7 +294,9 @@ public:
     GUICONTAINER_EPGGRID,
     GUICONTAINER_PANEL,
     GUICONTROL_RANGES,
-    GUICONTROL_COLORBUTTON
+    GUICONTROL_COLORBUTTON,
+    GUICONTROL_WINDOW,
+    GUICONTROL_WINDOW_RENDERABLE
   };
   GUICONTROLTYPES GetControlType() const { return ControlType; }
 

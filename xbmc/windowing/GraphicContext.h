@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "guilib/DirtyRegionTracker.h"
 #include "Resolution.h"
 #include "rendering/RenderSystem.h"
 #include "threads/CriticalSection.h"
@@ -179,6 +180,15 @@ public:
   const std::string& GetMediaDir() const;
   void SetMediaDir(const std::string& strMediaDir);
 
+  void AddDirtyRegion(CRect dirtyregion);
+  //m_tracker.MarkDirtyRegion(CDirtyRegion(rect));
+  void AddDirtyRegions(const CDirtyRegionList dirtyregions);
+  //for (auto& itr : m_dirtyregions)
+  //  m_tracker.MarkDirtyRegion(itr);//
+  CDirtyRegionList GetDirtyRegions() { return m_tracker.GetDirtyRegions(); }
+  CDirtyRegionList GetMarkedRegions() { return m_tracker.GetMarkedRegions(); }
+  void CleanMarkedRegions() { m_tracker.CleanMarkedRegions(); }
+
 protected:
 
   void UpdateCameraPosition(const CPoint &camera, const float &factor);
@@ -229,4 +239,7 @@ protected:
   RENDER_STEREO_VIEW m_stereoView = RENDER_STEREO_VIEW_OFF;
   RENDER_STEREO_MODE m_stereoMode = RENDER_STEREO_MODE_OFF;
   RENDER_STEREO_MODE m_nextStereoMode = RENDER_STEREO_MODE_OFF;
+
+
+  CDirtyRegionTracker m_tracker;
 };

@@ -50,6 +50,7 @@ CGUIWindowFullScreen::CGUIWindowFullScreen()
   m_dwShowViewModeTimeout = {};
   m_bShowCurrentTime = false;
   m_loadType = KEEP_IN_MEMORY;
+  ControlType = GUICONTROL_WINDOW_RENDERABLE;
   // audio
   //  - language
   //  - volume

@@ -58,6 +58,7 @@ CGUIWindow::CGUIWindow(int id, const std::string &xmlFile)
   m_menuControlID = 0;
   m_menuLastFocusedControlID = 0;
   m_custom = false;
+  ControlType = GUICONTROL_WINDOW;
 }
 
 CGUIWindow::~CGUIWindow()

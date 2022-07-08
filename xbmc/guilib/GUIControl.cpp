@@ -8,6 +8,7 @@
 
 #include "GUIControl.h"
 
+#include "DirtyRegionTracker.h"
 #include "GUIAction.h"
 #include "GUIComponent.h"
 #include "GUIControlProfiler.h"
@@ -79,7 +80,15 @@ CGUIControl::CGUIControl(int parentID, int controlID, float posX, float posY, fl
 
 CGUIControl::CGUIControl(const CGUIControl &) = default;
 
-CGUIControl::~CGUIControl(void) = default;
+CGUIControl::~CGUIControl(void)
+{
+  CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(m_renderRegion);
+}
+void CGUIControl::OnUnFocus()
+{
+  if (IsRenderable())
+    CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(m_renderRegion);
+}
 
 void CGUIControl::AllocResources()
 {
@@ -90,6 +99,7 @@ void CGUIControl::AllocResources()
 
 void CGUIControl::FreeResources(bool immediately)
 {
+  CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(m_renderRegion);
   if (m_bAllocated)
   {
     // Reset our animation states - not conditional anims though.
@@ -125,9 +135,20 @@ void CGUIControl::DoProcess(unsigned int currentTime, CDirtyRegionList &dirtyreg
   if (Animate(currentTime))
     MarkDirtyRegion();
 
+  //if (m_parentControl && m_parentControl->IsControlDirtyChild() && !(m_parentControl->IsRenderable()))
+  //  MarkDirtyRegion();
   if (IsVisible())
   {
-    m_cachedTransform = CServiceBroker::GetWinSystem()->GetGfxContext().AddTransform(m_transform);
+    
+    // If a parent had an animation and changed the transform, mark it
+    const TransformMatrix newTransform = CServiceBroker::GetWinSystem()->GetGfxContext().AddTransform(m_transform);
+    if (m_cachedTransform != newTransform)
+    {
+      m_cachedTransform = newTransform;
+      MarkDirtyRegion();
+    }
+
+    //m_cachedTransform = CServiceBroker::GetWinSystem()->GetGfxContext().AddTransform(m_transform);
     if (m_hasCamera)
       CServiceBroker::GetWinSystem()->GetGfxContext().SetCameraPosition(m_camera);
 
@@ -149,9 +170,11 @@ void CGUIControl::DoProcess(unsigned int currentTime, CDirtyRegionList &dirtyreg
 
   changed |= (m_controlDirtyState & DIRTY_STATE_CONTROL) != 0;
 
-  if (changed)
+  if (changed && IsRenderable())
+  //if (changed)
   {
-    dirtyregions.emplace_back(dirtyRegion);
+    CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(dirtyRegion);
+    //dirtyregions.emplace_back(dirtyRegion);
   }
 }
 
@@ -435,6 +458,7 @@ void CGUIControl::SetPosition(float posX, float posY)
 {
   if ((m_posX != posX) || (m_posY != posY))
   {
+    //CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(m_renderRegion);
     MarkDirtyRegion();
 
     m_hitRect += CPoint(posX - m_posX, posY - m_posY);
@@ -964,4 +988,23 @@ CPoint CGUIControl::GetRenderPosition() const
 void CGUIControl::SetStereoFactor(const float &factor)
 {
   m_stereo = factor;
+}
+
+bool CGUIControl::IsRenderable() const
+{
+  switch (ControlType) {
+  case GUICONTAINER_LIST:
+  case GUICONTAINER_WRAPLIST:
+  case GUICONTAINER_FIXEDLIST:
+  case GUICONTAINER_EPGGRID:
+  case GUICONTAINER_PANEL:
+  case GUICONTROL_GROUP:
+  case GUICONTROL_GROUPLIST:
+  case GUICONTROL_LISTGROUP:
+  //case GUICONTROL_DIALOG:
+  case GUICONTROL_WINDOW:
+    return false;
+  default:
+    return true;
+  }
 }

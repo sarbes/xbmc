@@ -39,6 +39,7 @@ CGameWindowFullScreen::CGameWindowFullScreen(void)
 
   // initialize CGUIWindow
   m_loadType = KEEP_IN_MEMORY;
+  ControlType = GUICONTROL_WINDOW_RENDERABLE;
 
   RegisterWindow();
 }

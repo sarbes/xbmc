@@ -31,6 +31,7 @@ CGUIWindowVisualisation::CGUIWindowVisualisation(void)
 {
   m_bShowPreset = false;
   m_loadType = KEEP_IN_MEMORY;
+  ControlType = GUICONTROL_WINDOW_RENDERABLE;
 }
 
 bool CGUIWindowVisualisation::OnAction(const CAction &action)

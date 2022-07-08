@@ -58,6 +58,7 @@ CGUIWindowSettingsScreenCalibration::CGUIWindowSettingsScreenCalibration(void)
   m_iControl = 0;
   m_fPixelRatioBoxHeight = 0.0f;
   m_needsScaling = false; // we handle all the scaling
+  ControlType = GUICONTROL_WINDOW_RENDERABLE;
 }
 
 CGUIWindowSettingsScreenCalibration::~CGUIWindowSettingsScreenCalibration(void) = default;

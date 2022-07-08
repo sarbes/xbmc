@@ -23,6 +23,7 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/CPUInfo.h"
+#include "utils/Geometry.h"
 #include "utils/MemUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
@@ -168,13 +169,13 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
   }
 
   float w, h;
-  if (m_layout->Update(info))
-    MarkDirtyRegion();
   m_layout->GetTextExtent(w, h);
 
   float x = xShift + 0.04f * CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth();
   float y = yShift + 0.04f * CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight();
   m_renderRegion.SetRect(x, y, x+w, y+h);
+  if (m_layout->Update(info))
+    CServiceBroker::GetWinSystem()->GetGfxContext().AddDirtyRegion(m_renderRegion);
 }
 
 void CGUIWindowDebugInfo::Render()

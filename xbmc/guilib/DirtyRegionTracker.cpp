@@ -76,7 +76,7 @@ CDirtyRegionList CDirtyRegionTracker::GetDirtyRegions()
 
 void CDirtyRegionTracker::CleanMarkedRegions()
 {
-  int buffering = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions ? 20 : m_buffering;
+  int buffering = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions ? 8 : m_buffering;
   int i = m_markedRegions.size() - 1;
   while (i >= 0)
 	{

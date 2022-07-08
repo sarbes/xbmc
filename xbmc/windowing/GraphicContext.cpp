@@ -28,7 +28,11 @@
 #include <cassert>
 #include <mutex>
 
-CGraphicContext::CGraphicContext() = default;
+CGraphicContext::CGraphicContext()
+{
+  m_tracker.SelectAlgorithm();
+};
+
 CGraphicContext::~CGraphicContext() = default;
 
 void CGraphicContext::SetOrigin(float x, float y)
@@ -1005,4 +1009,17 @@ void CGraphicContext::GetAllowedResolutions(std::vector<RESOLUTION> &res)
 void CGraphicContext::SetFPS(float fps)
 {
   m_fFPSOverride = fps;
+}
+
+
+void CGraphicContext::AddDirtyRegion(CRect rect)
+{
+  m_tracker.MarkDirtyRegion(CDirtyRegion(rect));
+}
+
+void CGraphicContext::AddDirtyRegions(CDirtyRegionList dirtyregions)
+{
+
+  for (auto& itr : dirtyregions)
+    m_tracker.MarkDirtyRegion(itr);
 }
