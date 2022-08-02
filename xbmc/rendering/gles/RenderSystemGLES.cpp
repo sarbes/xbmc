@@ -105,6 +105,7 @@ bool CRenderSystemGLES::InitRenderSystem()
 
   CGUITextureGLES::Register();
 
+  glEnable(GL_FRAMEBUFFER_SRGB_EXT);
   return true;
 }
 
