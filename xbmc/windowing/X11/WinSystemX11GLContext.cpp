@@ -21,6 +21,8 @@
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGL.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "guilib/DispResource.h"
+#include "utils/BufferObjectFactory.h"
+#include "utils/DMAHeapBufferObject.h"
 #include "rendering/gl/ScreenshotSurfaceGL.h"
 #include "windowing/GraphicContext.h"
 #include "windowing/WindowSystemFactory.h"
@@ -229,6 +231,11 @@ XVisualInfo* CWinSystemX11GLContext::GetVisual()
 
 bool CWinSystemX11GLContext::RefreshGLContext(bool force)
 {
+  CBufferObjectFactory::ClearBufferObjects();
+  #if defined(HAVE_LINUX_DMA_HEAP)
+    CDMAHeapBufferObject::Register();
+  #endif
+
   bool success = false;
   if (m_pGLContext)
   {

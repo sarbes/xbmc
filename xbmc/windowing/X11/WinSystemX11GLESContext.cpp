@@ -20,6 +20,8 @@
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "guilib/DispResource.h"
+#include "utils/BufferObjectFactory.h"
+#include "utils/DMAHeapBufferObject.h"
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
 #include "windowing/WindowSystemFactory.h"
@@ -254,6 +256,11 @@ XVisualInfo* CWinSystemX11GLESContext::GetVisual()
 
 bool CWinSystemX11GLESContext::RefreshGLContext(bool force)
 {
+  CBufferObjectFactory::ClearBufferObjects();
+  #if defined(HAVE_LINUX_DMA_HEAP)
+    CDMAHeapBufferObject::Register();
+  #endif
+
   bool success = false;
   if (m_pGLContext)
   {

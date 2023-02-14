@@ -27,6 +27,13 @@ enum class TEXTURE_SCALING
   NEAREST,
 };
 
+enum class TEXTURE_UPLOAD_METHOD
+{
+  TEXTURE_UPLOAD_NORMAL,
+  TEXTURE_UPLOAD_PREFER_DMA,
+  TEXTURE_UPLOAD_FORCE_DMA,
+};
+
 /*!
 \ingroup textures
 \brief Base texture class, subclasses of which depend on the render spec (DX, GL etc.)
@@ -35,7 +42,7 @@ class CTexture
 {
 
 public:
-  CTexture(unsigned int width = 0, unsigned int height = 0, unsigned int format = XB_FMT_A8R8G8B8);
+  CTexture(uint32_t width = 0, uint32_t height = 0, uint32_t format = XB_FMT_A8R8G8B8);
   virtual ~CTexture();
 
   static std::unique_ptr<CTexture> CreateTexture(unsigned int width = 0,
@@ -55,7 +62,8 @@ public:
                                                 unsigned int idealWidth = 0,
                                                 unsigned int idealHeight = 0,
                                                 bool requirePixels = false,
-                                                const std::string& strMimeType = "");
+                                                const std::string& strMimeType = "",
+                                                TEXTURE_UPLOAD_METHOD textureUploadMethod = TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL);
 
   /*! \brief Load a texture from a file in memory
    Loads a texture from a file in memory, restricting in size if needed based on maxHeight and maxWidth.
@@ -106,7 +114,7 @@ public:
   void SetOrientation(int orientation) { m_orientation = orientation; }
 
   void Update(unsigned int width, unsigned int height, unsigned int pitch, unsigned int format, const unsigned char *pixels, bool loadToGPU);
-  void Allocate(unsigned int width, unsigned int height, unsigned int format);
+  void Allocate(uint32_t width, uint32_t height, uint32_t format, TEXTURE_UPLOAD_METHOD textureUploadMethod);
   void ClampToEdge();
 
   static unsigned int PadPow2(unsigned int x);
@@ -119,12 +127,16 @@ private:
 protected:
   bool LoadFromFileInMem(unsigned char* buffer, size_t size, const std::string& mimeType,
                          unsigned int maxWidth, unsigned int maxHeight);
-  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "");
+  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "", TEXTURE_UPLOAD_METHOD textureUploadMethod = TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL);
   bool LoadIImage(IImage* pImage, unsigned char* buffer, unsigned int bufSize, unsigned int width, unsigned int height);
   // helpers for computation of texture parameters for compressed textures
   unsigned int GetPitch(unsigned int width) const;
   unsigned int GetRows(unsigned int height) const;
   unsigned int GetBlockSize() const;
+  void CalculateTextureSize(uint32_t width, uint32_t height, uint32_t format);
+  virtual void Allocate(uint32_t format);
+  virtual bool SupportsDMAUpload() { return false; }
+  virtual void AfterWritingTexture() {};
 
   unsigned int m_imageWidth;
   unsigned int m_imageHeight;
@@ -141,4 +153,5 @@ protected:
   bool m_mipmapping =  false ;
   TEXTURE_SCALING m_scalingMethod = TEXTURE_SCALING::LINEAR;
   bool m_bCacheMemory = false;
+  TEXTURE_UPLOAD_METHOD m_textureUploadMethod{TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL};
 };

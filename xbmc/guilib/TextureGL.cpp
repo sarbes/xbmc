@@ -9,6 +9,9 @@
 #include "TextureGL.h"
 
 #include "ServiceBroker.h"
+#ifdef HAS_EGL
+#include "guilib/TextureEGL.h"
+#endif
 #include "guilib/TextureManager.h"
 #include "rendering/RenderSystem.h"
 #include "settings/AdvancedSettings.h"
@@ -22,7 +25,11 @@ std::unique_ptr<CTexture> CTexture::CreateTexture(unsigned int width,
                                                   unsigned int height,
                                                   unsigned int format)
 {
+#ifdef HAS_EGL
+  return std::make_unique<CEGLTexture>(width, height, format);
+#else
   return std::make_unique<CGLTexture>(width, height, format);
+#endif
 }
 
 CGLTexture::CGLTexture(unsigned int width, unsigned int height, unsigned int format)

@@ -15,6 +15,7 @@
 #include "filesystem/File.h"
 #include "filesystem/ResourceFile.h"
 #include "filesystem/XbtFile.h"
+#include "guilib/TextureFormats.h"
 #include "guilib/iimage.h"
 #include "guilib/imagefactory.h"
 #include "utils/URIUtils.h"
@@ -41,16 +42,33 @@ CTexture::CTexture(unsigned int width, unsigned int height, unsigned int format)
 {
   m_pixels = NULL;
   m_loadedToGPU = false;
-  Allocate(width, height, format);
+  Allocate(width, height, format, TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL);
 }
 
 CTexture::~CTexture()
 {
-  KODI::MEMORY::AlignedFree(m_pixels);
-  m_pixels = NULL;
+  if (m_pixels)
+  {
+    KODI::MEMORY::AlignedFree(m_pixels);
+    m_pixels = NULL;
+  }
 }
 
-void CTexture::Allocate(unsigned int width, unsigned int height, unsigned int format)
+void CTexture::Allocate(uint32_t width, uint32_t height, uint32_t format, TEXTURE_UPLOAD_METHOD textureUploadMethod)
+{
+  if (!SupportsDMAUpload() && textureUploadMethod == TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_FORCE_DMA)
+  {
+    CLog::Log(LOGERROR, "CTexture::{} - Attempted to load a texure via DMA on an unsupported system.", __FUNCTION__);
+    return;
+  }
+  else
+  {
+    CalculateTextureSize(width, height, format);
+    Allocate(format);
+  }
+}
+
+void CTexture::CalculateTextureSize(uint32_t width, uint32_t height, uint32_t format)
 {
   m_imageWidth = m_originalWidth = width;
   m_imageHeight = m_originalHeight = height;
@@ -99,7 +117,10 @@ void CTexture::Allocate(unsigned int width, unsigned int height, unsigned int fo
   CLAMP(m_textureHeight, CServiceBroker::GetRenderSystem()->GetMaxTextureSize());
   CLAMP(m_imageWidth, m_textureWidth);
   CLAMP(m_imageHeight, m_textureHeight);
+}
 
+void CTexture::Allocate(uint32_t format)
+{
   KODI::MEMORY::AlignedFree(m_pixels);
   m_pixels = NULL;
   if (GetPitch() * GetRows() > 0)
@@ -127,7 +148,7 @@ void CTexture::Update(unsigned int width,
   if (format & XB_FMT_DXT_MASK)
     return;
 
-  Allocate(width, height, format);
+  Allocate(width, height, format, TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL);
 
   if (m_pixels == nullptr)
     return;
@@ -193,7 +214,8 @@ std::unique_ptr<CTexture> CTexture::LoadFromFile(const std::string& texturePath,
                                                  unsigned int idealWidth,
                                                  unsigned int idealHeight,
                                                  bool requirePixels,
-                                                 const std::string& strMimeType)
+                                                 const std::string& strMimeType,
+                                                 TEXTURE_UPLOAD_METHOD textureUploadMethod)
 {
 #if defined(TARGET_ANDROID)
   CURL url(texturePath);
@@ -218,7 +240,7 @@ std::unique_ptr<CTexture> CTexture::LoadFromFile(const std::string& texturePath,
   }
 #endif
   std::unique_ptr<CTexture> texture = CTexture::CreateTexture();
-  if (texture->LoadFromFileInternal(texturePath, idealWidth, idealHeight, requirePixels, strMimeType))
+  if (texture->LoadFromFileInternal(texturePath, idealWidth, idealHeight, requirePixels, strMimeType, textureUploadMethod))
     return texture;
   return {};
 }
@@ -239,7 +261,8 @@ bool CTexture::LoadFromFileInternal(const std::string& texturePath,
                                     unsigned int maxWidth,
                                     unsigned int maxHeight,
                                     bool requirePixels,
-                                    const std::string& strMimeType)
+                                    const std::string& strMimeType,
+                                    TEXTURE_UPLOAD_METHOD textureUploadMethod)
 {
   if (URIUtils::HasExtension(texturePath, ".dds"))
   { // special case for DDS images
@@ -251,6 +274,7 @@ bool CTexture::LoadFromFileInternal(const std::string& texturePath,
     }
     return false;
   }
+  m_textureUploadMethod = textureUploadMethod;
 
   unsigned int width = maxWidth ? std::min(maxWidth, CServiceBroker::GetRenderSystem()->GetMaxTextureSize()) :
                                   CServiceBroker::GetRenderSystem()->GetMaxTextureSize();
@@ -336,9 +360,10 @@ bool CTexture::LoadIImage(IImage* pImage,
   {
     if (pImage->Width() > 0 && pImage->Height() > 0)
     {
-      Allocate(pImage->Width(), pImage->Height(), XB_FMT_A8R8G8B8);
+      Allocate(pImage->Width(), pImage->Height(), XB_FMT_A8R8G8B8, TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_PREFER_DMA);
       if (m_pixels != nullptr && pImage->Decode(m_pixels, GetTextureWidth(), GetRows(), GetPitch(), XB_FMT_A8R8G8B8))
       {
+        AfterWritingTexture();
         if (pImage->Orientation())
           m_orientation = pImage->Orientation() - 1;
         m_hasAlpha = pImage->hasAlpha();
@@ -379,7 +404,7 @@ bool CTexture::LoadPaletted(unsigned int width,
   if (pixels == NULL || palette == NULL)
     return false;
 
-  Allocate(width, height, format);
+  Allocate(width, height, XB_FMT_A8R8G8B8, TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_NORMAL);
 
   for (unsigned int y = 0; y < m_imageHeight; y++)
   {

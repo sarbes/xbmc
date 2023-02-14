@@ -175,6 +175,11 @@ if(OPENGL_FOUND OR OPENGLES_FOUND)
     list(APPEND HEADERS GUITextureGLES.h)
   endif()
 
+  if(EGL_FOUND)
+    list(APPEND SOURCES TextureEGL.cpp)
+    list(APPEND HEADERS TextureEGL.h)
+  endif()
+
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL windows OR CORE_SYSTEM_NAME STREQUAL windowsstore)

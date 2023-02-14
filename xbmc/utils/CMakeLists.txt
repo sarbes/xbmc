@@ -202,7 +202,7 @@ if(OPENGL_FOUND OR OPENGLES_FOUND)
   list(APPEND HEADERS GLUtils.h)
 endif()
 
-if("gbm" IN_LIST CORE_PLATFORM_NAME_LC OR "wayland" IN_LIST CORE_PLATFORM_NAME_LC)
+if("gbm" IN_LIST CORE_PLATFORM_NAME_LC OR "wayland" IN_LIST CORE_PLATFORM_NAME_LC OR "x11" IN_LIST CORE_PLATFORM_NAME_LC)
   list(APPEND SOURCES BufferObject.cpp
                       BufferObjectFactory.cpp)
   list(APPEND HEADERS BufferObject.h

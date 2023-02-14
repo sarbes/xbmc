@@ -424,6 +424,7 @@ void CAdvancedSettings::Initialize()
   m_guiVisualizeDirtyRegions = false;
   m_guiAlgorithmDirtyRegions = 3;
   m_guiSmartRedraw = false;
+  m_guiDMATextureUpload = false;
   m_airTunesPort = 36666;
   m_airPlayPort = 36667;
 
@@ -1243,6 +1244,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetBoolean(pElement, "visualizedirtyregions", m_guiVisualizeDirtyRegions);
     XMLUtils::GetInt(pElement, "algorithmdirtyregions",     m_guiAlgorithmDirtyRegions);
     XMLUtils::GetBoolean(pElement, "smartredraw", m_guiSmartRedraw);
+    XMLUtils::GetBoolean(pElement, "dmatextureupload", m_guiDMATextureUpload);
   }
 
   std::string seekSteps;

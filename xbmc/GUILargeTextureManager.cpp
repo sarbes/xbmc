@@ -52,7 +52,7 @@ bool CImageLoader::DoWork()
     auto start = std::chrono::steady_clock::now();
     m_texture =
         CTexture::LoadFromFile(loadPath, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(),
-                               CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight());
+                               CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight(), false, "", TEXTURE_UPLOAD_METHOD::TEXTURE_UPLOAD_PREFER_DMA);
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
