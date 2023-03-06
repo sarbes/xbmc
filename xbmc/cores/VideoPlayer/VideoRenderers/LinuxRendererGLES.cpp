@@ -358,6 +358,21 @@ void CLinuxRendererGLES::Update()
   ValidateRenderTarget();
 }
 
+void CLinuxRendererGLES::ClearBackBuffer()
+{
+  //set the entire backbuffer to black
+  //if we do a two pass render, we have to draw a quad. else we might occlude OSD elements.
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() ==
+      RENDER_ORDER_ALL_BACK_TO_FRONT)
+  {
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0xff000000);
+  }
+  else
+  {
+    ClearBackBufferQuad();
+  }
+}
+
 void CLinuxRendererGLES::ClearBackBufferQuad()
 {
   CRect windowRect(0, 0, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(),
@@ -472,6 +487,9 @@ void CLinuxRendererGLES::RenderUpdate(int index, int index2, bool clear, unsigne
   // if its first pass, just init textures and return
   if (ValidateRenderTarget())
   {
+    if (clear) //if clear is set, we're expected to overwrite all backbuffer pixels, even if we have nothing to render
+      ClearBackBuffer();
+
     return;
   }
 
@@ -496,9 +514,7 @@ void CLinuxRendererGLES::RenderUpdate(int index, int index2, bool clear, unsigne
       DrawBlackBars();
     else
     {
-      glClearColor(m_clearColour, m_clearColour, m_clearColour, 0);
-      glClear(GL_COLOR_BUFFER_BIT);
-      glClearColor(0, 0, 0, 0);
+      ClearBackBuffer();
     }
   }
 
@@ -530,7 +546,8 @@ void CLinuxRendererGLES::RenderUpdate(int index, int index2, bool clear, unsigne
     }
   }
 
-  Render(flags, index);
+  if (!Render(flags, index) && clear)
+    ClearBackBuffer();
 
   VerifyGLState();
   glEnable(GL_BLEND);
@@ -823,7 +840,7 @@ bool CLinuxRendererGLES::UploadTexture(int index)
   return ret;
 }
 
-void CLinuxRendererGLES::Render(unsigned int flags, int index)
+bool CLinuxRendererGLES::Render(unsigned int flags, int index)
 {
   // obtain current field, if interlaced
   if( flags & RENDER_FLAG_TOP)
@@ -842,7 +859,7 @@ void CLinuxRendererGLES::Render(unsigned int flags, int index)
   // call texture load function
   if (!UploadTexture(index))
   {
-    return;
+    return false;
   }
 
   if (RenderHook(index))
@@ -872,8 +889,13 @@ void CLinuxRendererGLES::Render(unsigned int flags, int index)
       break;
     }
   }
+  else
+  {
+    return false;
+  }
 
   AfterRenderHook(index);
+  return true;
 }
 
 void CLinuxRendererGLES::RenderSinglePass(int index, int field)
