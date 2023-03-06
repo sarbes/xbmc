@@ -185,20 +185,20 @@ void CGUITexture::Render(int32_t depthOffset)
   bool hasAlpha =
       (((color >> 24) & 0xFF) != 0xFF || m_texture.m_textures[m_currentFrame]->HasAlpha());
   if (m_diffuse.size())
-          hasAlpha |= m_diffuse.m_textures[0]->HasAlpha();
+    hasAlpha |= m_diffuse.m_textures[0]->HasAlpha();
 
   // bail if it is not the appropriate render pass
   RENDER_ORDER renderOrder = CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder();
   if (hasAlpha && renderOrder == RENDER_ORDER_FRONT_TO_BACK)
-          return;
+    return;
   if (!hasAlpha && renderOrder == RENDER_ORDER_BACK_TO_FRONT)
-          return;
+    return;
 
   // see if we need to clip the image
   if (m_vertex.Width() > m_width || m_vertex.Height() > m_height)
   {
-          if (!CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_posX, m_posY,
-                                                                             m_width, m_height))
+    if (!CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_posX, m_posY, m_width,
+                                                                     m_height))
       return;
   }
 
