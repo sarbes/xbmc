@@ -532,9 +532,7 @@ void CLinuxRendererGL::ClearBackBuffer()
   if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() ==
       RENDER_ORDER_ALL_BACK_TO_FRONT)
   {
-    glClearColor(m_clearColour, m_clearColour, m_clearColour, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0, 0, 0, 0);
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0xff000000);
   }
   else
   {
