@@ -114,11 +114,14 @@ void CGUITextureGLES::End()
     GLint tex0Loc = m_renderSystem->GUIShaderGetCoord0();
     GLint tex1Loc = m_renderSystem->GUIShaderGetCoord1();
     GLint uniColLoc = m_renderSystem->GUIShaderGetUniCol();
+    GLint depthLoc = m_renderSystem->ShaderGetDepth();
 
     if(uniColLoc >= 0)
     {
       glUniform4f(uniColLoc,(m_col[0] / 255.0f), (m_col[1] / 255.0f), (m_col[2] / 255.0f), (m_col[3] / 255.0f));
     }
+
+    glUniform1f(depthLoc, m_depth);
 
     if(m_diffuse.size())
     {

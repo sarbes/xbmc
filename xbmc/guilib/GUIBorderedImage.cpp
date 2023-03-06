@@ -57,7 +57,7 @@ void CGUIBorderedImage::Process(unsigned int currentTime, CDirtyRegionList &dirt
 void CGUIBorderedImage::Render()
 {
   if (!m_borderImage->GetFileName().empty() && m_texture->ReadyToRender())
-    m_borderImage->Render();
+    m_borderImage->Render(-1);
   CGUIImage::Render();
 }
 

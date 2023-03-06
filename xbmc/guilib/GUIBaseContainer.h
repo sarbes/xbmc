@@ -50,6 +50,7 @@ public:
   void AllocResources() override;
   void FreeResources(bool immediately = false) override;
   void UpdateVisibility(const CGUIListItem *item = NULL) override;
+  void AssignDepth() override;
 
   virtual unsigned int GetRows() const;
 
@@ -233,6 +234,14 @@ private:
   // early inertial scroll cancellation
   bool m_waitForScrollEnd = false;
   float m_lastScrollValue = 0.0f;
+
+  struct RENDERITEM
+  {
+    float posX;
+    float posY;
+    CGUIListItemPtr item;
+    bool focused;
+  };
 };
 
 

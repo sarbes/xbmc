@@ -212,5 +212,6 @@ protected:
   CRect m_viewRect;
 
 private:
+  void ClearBackBufferQuad();
   void DrawBlackBars();
 };

@@ -88,7 +88,7 @@ public:
                        const CRect* texCoords = nullptr);
 
   bool Process(unsigned int currentTime);
-  void Render();
+  void Render(int32_t depthOffset = 0);
 
   void DynamicResourceAlloc(bool bOnOff);
   bool AllocResources();
@@ -173,6 +173,7 @@ protected:
   float m_posY;
   float m_width;
   float m_height;
+  float m_depth{0};
 
   CRect m_vertex;       // vertex coords to render
   bool m_invalid;       // if true, we need to recalculate

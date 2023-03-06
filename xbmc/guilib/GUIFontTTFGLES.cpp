@@ -123,6 +123,7 @@ void CGUIFontTTFGLES::LastEnd()
   GLint colLoc = renderSystem->GUIShaderGetCol();
   GLint tex0Loc = renderSystem->GUIShaderGetCoord0();
   GLint modelLoc = renderSystem->GUIShaderGetModel();
+  GLint depthLoc = renderSystem->ShaderGetDepth();
 
   CreateStaticVertexBuffers();
 
@@ -194,6 +195,10 @@ void CGUIFontTTFGLES::LastEnd()
       glMatrixModview.Get().Translatef(m_vertexTrans[i].m_translateX, m_vertexTrans[i].m_translateY,
                                        m_vertexTrans[i].m_translateZ);
       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glMatrixModview.Get());
+
+      // Apply the depth value of the layer
+      float depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth();
+      glUniform1f(depthLoc, depth);
 
       // Bind the buffer to the OpenGL context's GL_ARRAY_BUFFER binding point
       glBindBuffer(GL_ARRAY_BUFFER, m_vertexTrans[i].m_vertexBuffer->bufferHandle);

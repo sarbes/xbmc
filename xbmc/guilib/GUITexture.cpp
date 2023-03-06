@@ -9,6 +9,7 @@
 #include "GUITexture.h"
 
 #include "GUILargeTextureManager.h"
+#include "Texture.h"
 #include "TextureManager.h"
 #include "utils/MathUtils.h"
 #include "utils/StringUtils.h"
@@ -163,17 +164,10 @@ bool CGUITexture::Process(unsigned int currentTime)
   return changed;
 }
 
-void CGUITexture::Render()
+void CGUITexture::Render(int32_t depthOffset)
 {
   if (!m_visible || !m_texture.size())
     return;
-
-  // see if we need to clip the image
-  if (m_vertex.Width() > m_width || m_vertex.Height() > m_height)
-  {
-    if (!CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_posX, m_posY, m_width, m_height))
-      return;
-  }
 
   // set our draw color
   #define MIX_ALPHA(a,c) (((a * (c >> 24)) / 255) << 24) | (c & 0x00ffffff)
@@ -185,6 +179,28 @@ void CGUITexture::Render()
 	  color = MIX_ALPHA(m_alpha, color);
 
   color = CServiceBroker::GetWinSystem()->GetGfxContext().MergeColor(color);
+
+  m_depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth(depthOffset);
+
+  bool hasAlpha =
+      (((color >> 24) & 0xFF) != 0xFF || m_texture.m_textures[m_currentFrame]->HasAlpha());
+  if (m_diffuse.size())
+          hasAlpha |= m_diffuse.m_textures[0]->HasAlpha();
+
+  // bail if it is not the appropriate render pass
+  RENDER_ORDER renderOrder = CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder();
+  if (hasAlpha && renderOrder == RENDER_ORDER_FRONT_TO_BACK)
+          return;
+  if (!hasAlpha && renderOrder == RENDER_ORDER_BACK_TO_FRONT)
+          return;
+
+  // see if we need to clip the image
+  if (m_vertex.Width() > m_width || m_vertex.Height() > m_height)
+  {
+          if (!CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_posX, m_posY,
+                                                                             m_width, m_height))
+      return;
+  }
 
   // setup our renderer
   Begin(color);

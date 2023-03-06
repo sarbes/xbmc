@@ -358,6 +358,46 @@ void CLinuxRendererGLES::Update()
   ValidateRenderTarget();
 }
 
+void CLinuxRendererGLES::ClearBackBufferQuad()
+{
+  CRect windowRect(0, 0, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(),
+                   CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight());
+  struct Svertex
+  {
+    float x, y;
+  };
+
+  std::vector<Svertex> vertices{
+      {windowRect.x1, windowRect.y2 * 2},
+      {windowRect.x1, windowRect.y1},
+      {windowRect.x2 * 2, windowRect.y1},
+  };
+
+  glDisable(GL_BLEND);
+
+  m_renderSystem->EnableGUIShader(ShaderMethodGLES::SM_DEFAULT);
+  GLint posLoc = m_renderSystem->GUIShaderGetPos();
+  GLint uniCol = m_renderSystem->GUIShaderGetUniCol();
+
+  glUniform4f(uniCol, m_clearColour / 255.0f, m_clearColour / 255.0f, m_clearColour / 255.0f, 1.0f);
+
+  GLuint vertexVBO;
+  glGenBuffers(1, &vertexVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Svertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+
+  glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Svertex), 0);
+  glEnableVertexAttribArray(posLoc);
+
+  glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+  glDisableVertexAttribArray(posLoc);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &vertexVBO);
+
+  m_renderSystem->DisableGUIShader();
+}
+
 void CLinuxRendererGLES::DrawBlackBars()
 {
   CRect windowRect(0, 0, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(),
