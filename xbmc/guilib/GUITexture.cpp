@@ -198,7 +198,7 @@ void CGUITexture::Render(int32_t depthOffset)
   if (m_vertex.Width() > m_width || m_vertex.Height() > m_height)
   {
     if (!CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_posX, m_posY, m_width,
-                                                                     m_height))
+                                                                       m_height))
       return;
   }
 
