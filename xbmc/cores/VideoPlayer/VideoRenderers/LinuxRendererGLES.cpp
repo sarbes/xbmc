@@ -912,8 +912,6 @@ void CLinuxRendererGLES::RenderSinglePass(int index, int field)
     LoadShaders(field);
   }
 
-  glDisable(GL_DEPTH_TEST);
-
   // Y
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(m_textureTarget, planes[0].id);
@@ -1062,8 +1060,6 @@ void CLinuxRendererGLES::RenderToFBO(int index, int field)
       return;
     }
   }
-
-  glDisable(GL_DEPTH_TEST);
 
   // Y
   glActiveTexture(GL_TEXTURE0);

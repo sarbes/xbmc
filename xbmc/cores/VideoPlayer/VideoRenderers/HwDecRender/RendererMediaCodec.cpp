@@ -113,8 +113,6 @@ bool CRendererMediaCodec::RenderHook(int index)
   CYuvPlane &plane = m_buffers[index].fields[0][0];
   CYuvPlane &planef = m_buffers[index].fields[m_currentField][0];
 
-  glDisable(GL_DEPTH_TEST);
-
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, plane.id);
 
