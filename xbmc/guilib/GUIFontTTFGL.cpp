@@ -168,6 +168,9 @@ void CGUIFontTTFGL::LastEnd()
     glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, GL_FALSE, sizeof(SVertex),
                           reinterpret_cast<const GLvoid*>(offsetof(SVertex, u)));
 
+    float depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth();
+    glUniform1f(depthLoc, depth);
+
     glDrawArrays(GL_TRIANGLES, 0, vecVertices.size());
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
