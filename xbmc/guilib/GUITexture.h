@@ -68,7 +68,7 @@ class CGUITexture;
 using CreateGUITextureFunc = std::function<CGUITexture*(
     float posX, float posY, float width, float height, const CTextureInfo& texture)>;
 using DrawQuadFunc = std::function<void(
-    const CRect& coords, UTILS::COLOR::Color color, CTexture* texture, const CRect* texCoords)>;
+    const CRect& coords, UTILS::COLOR::Color color, CTexture* texture, const CRect* texCoords, float depth)>;
 
 class CGUITexture
 {
@@ -85,7 +85,8 @@ public:
   static void DrawQuad(const CRect& coords,
                        UTILS::COLOR::Color color,
                        CTexture* texture = nullptr,
-                       const CRect* texCoords = nullptr);
+                       const CRect* texCoords = nullptr,
+                       float depth = 1.0);
 
   bool Process(unsigned int currentTime);
   void Render(int32_t depthOffset = 0);

@@ -53,13 +53,18 @@ CGUITexture* CGUITexture::CreateTexture(
 void CGUITexture::DrawQuad(const CRect& coords,
                            UTILS::COLOR::Color color,
                            CTexture* texture,
-                           const CRect* texCoords)
+                           const CRect* texCoords,
+                           float depth)
 {
+  // bail for now if we render front to back
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() == RENDER_ORDER_FRONT_TO_BACK)
+    return;
+
   if (!m_drawQuadFunc)
     throw std::runtime_error(
         "No GUITexture DrawQuad function available. Did you forget to register?");
 
-  m_drawQuadFunc(coords, color, texture, texCoords);
+  m_drawQuadFunc(coords, color, texture, texCoords, depth);
 }
 
 CGUITexture::CGUITexture(
