@@ -106,10 +106,19 @@ void CGUIButtonControl::Process(unsigned int currentTime, CDirtyRegionList &dirt
 
 void CGUIButtonControl::Render()
 {
-  m_imgFocus->Render(-1);
-  m_imgNoFocus->Render();
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() ==
+      RENDER_ORDER_FRONT_TO_BACK)
+  {
+    m_imgNoFocus->Render();
+    m_imgFocus->Render(-1);
+  }
+  else
+  {
+    m_imgFocus->Render(-1);
+    m_imgNoFocus->Render();
+    RenderText();
+  }
 
-  RenderText();
   CGUIControl::Render();
 }
 
