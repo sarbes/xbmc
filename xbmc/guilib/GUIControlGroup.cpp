@@ -300,13 +300,19 @@ bool CGUIControlGroup::CanFocus() const
 
 void CGUIControlGroup::AssignDepth()
 {
+  CGUIControl *focusedControl = nullptr;
   if (m_children.size())
   {
     for (auto* control : m_children)
     {
-      control->AssignDepth();
+      if (m_renderFocusedLast && control->HasFocus())
+        focusedControl = control;
+      else
+        control->AssignDepth();
     }
   }
+  if(focusedControl)
+    focusedControl->AssignDepth();
 }
 
 void CGUIControlGroup::SetInitialVisibility()
