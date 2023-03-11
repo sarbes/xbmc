@@ -22,7 +22,7 @@ public:
                        UTILS::COLOR::Color color,
                        CTexture* texture = nullptr,
                        const CRect* texCoords = nullptr,
-                       float depth = 1.0);
+                       const float depth = 1.0);
 
   CGUITextureD3D(float posX, float posY, float width, float height, const CTextureInfo& texture);
   ~CGUITextureD3D() override = default;

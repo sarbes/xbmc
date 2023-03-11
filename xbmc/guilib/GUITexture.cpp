@@ -54,7 +54,7 @@ void CGUITexture::DrawQuad(const CRect& coords,
                            UTILS::COLOR::Color color,
                            CTexture* texture,
                            const CRect* texCoords,
-                           float depth)
+                           const float depth)
 {
   // bail for now if we render front to back
   if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() == RENDER_ORDER_FRONT_TO_BACK)

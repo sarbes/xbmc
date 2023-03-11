@@ -86,7 +86,7 @@ public:
                        UTILS::COLOR::Color color,
                        CTexture* texture = nullptr,
                        const CRect* texCoords = nullptr,
-                       float depth = 1.0);
+                       const float depth = 1.0);
 
   bool Process(unsigned int currentTime);
   void Render(int32_t depthOffset = 0);

@@ -259,7 +259,7 @@ void CGUITextureGL::DrawQuad(const CRect& rect,
                              UTILS::COLOR::Color color,
                              CTexture* texture,
                              const CRect* texCoords,
-                             float depth)
+                             const float depth)
 {
   CRenderSystemGL *renderSystem = dynamic_cast<CRenderSystemGL*>(CServiceBroker::GetRenderSystem());
   if (texture)
