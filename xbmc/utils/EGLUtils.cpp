@@ -296,14 +296,19 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool
       guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_UNION)
     surfaceType |= EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
 
+  EGLint sampleBuffers = 0;
+  const EGLint msaa = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiMSAA;
+  if (msaa)
+    sampleBuffers = 1;
+
   CEGLAttributesVec attribs;
   attribs.Add({{EGL_RED_SIZE, 8},
                {EGL_GREEN_SIZE, 8},
                {EGL_BLUE_SIZE, 8},
                {EGL_ALPHA_SIZE, 2},
                {EGL_DEPTH_SIZE, 16},
-               {EGL_STENCIL_SIZE, 0},
-               {EGL_SAMPLE_BUFFERS, 0},
+               {EGL_STENCIL_SIZE, msaa},
+               {EGL_SAMPLE_BUFFERS, sampleBuffers},
                {EGL_SAMPLES, 0},
                {EGL_SURFACE_TYPE, surfaceType},
                {EGL_RENDERABLE_TYPE, renderableType}});

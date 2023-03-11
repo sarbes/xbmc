@@ -196,6 +196,12 @@ bool CGLContextEGL::Refresh(bool force, int screen, Window glWindow, bool &newCo
 
 bool CGLContextEGL::CreatePB()
 {
+  EGLint sampleBuffers = 0;
+  const EGLint msaa = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiMSAA;
+  if (msaa)
+    sampleBuffers = 1;
+
+  // clang-format off
   const EGLint configAttribs[] =
   {
     EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
@@ -203,9 +209,12 @@ bool CGLContextEGL::CreatePB()
     EGL_GREEN_SIZE, 8,
     EGL_RED_SIZE, 8,
     EGL_DEPTH_SIZE, 8,
+    EGL_STENCIL_SIZE, msaa,
+    EGL_SAMPLE_BUFFERS, sampleBuffers,
     EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
     EGL_NONE
   };
+  // clang-format on
 
   const EGLint pbufferAttribs[] =
   {
@@ -343,6 +352,14 @@ bool CGLContextEGL::SuitableCheck(EGLDisplay eglDisplay, EGLConfig config)
     return false;
   if (!eglGetConfigAttrib(eglDisplay, config, EGL_DEPTH_SIZE, &value) || value < 24)
     return false;
+  const EGLint msaa = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiMSAA;
+  if (msaa > 1)
+  {
+    if (!eglGetConfigAttrib(eglDisplay, config, EGL_SAMPLES, &value) || value < msaa)
+      return false;
+    if (!eglGetConfigAttrib(eglDisplay, config, EGL_SAMPLE_BUFFERS, &value) || value < 1)
+      return false;
+  }
 
   return true;
 }
