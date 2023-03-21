@@ -209,6 +209,14 @@ protected:
 
   unsigned int m_lastRenderTime;
 
+  struct RENDERITEM
+  {
+    float posX;
+    float posY;
+    CGUIListItemPtr item;
+    bool focused;
+  };
+
 private:
   bool OnContextMenu();
 
@@ -234,14 +242,6 @@ private:
   // early inertial scroll cancellation
   bool m_waitForScrollEnd = false;
   float m_lastScrollValue = 0.0f;
-
-  struct RENDERITEM
-  {
-    float posX;
-    float posY;
-    CGUIListItemPtr item;
-    bool focused;
-  };
 };
 
 
