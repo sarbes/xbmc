@@ -114,7 +114,7 @@ void CGUITextureGLES::End()
     GLint tex0Loc = m_renderSystem->GUIShaderGetCoord0();
     GLint tex1Loc = m_renderSystem->GUIShaderGetCoord1();
     GLint uniColLoc = m_renderSystem->GUIShaderGetUniCol();
-    GLint depthLoc = m_renderSystem->ShaderGetDepth();
+    GLint depthLoc = m_renderSystem->GUIShaderGetDepth();
 
     if(uniColLoc >= 0)
     {
@@ -265,7 +265,7 @@ void CGUITextureGLES::DrawQuad(const CRect& rect,
   GLint posLoc   = renderSystem->GUIShaderGetPos();
   GLint tex0Loc  = renderSystem->GUIShaderGetCoord0();
   GLint uniColLoc= renderSystem->GUIShaderGetUniCol();
-  GLint depthLoc = renderSystem->ShaderGetDepth();
+  GLint depthLoc = renderSystem->GUIShaderGetDepth();
 
   glVertexAttribPointer(posLoc,  3, GL_FLOAT, 0, 0, ver);
   if (texture)

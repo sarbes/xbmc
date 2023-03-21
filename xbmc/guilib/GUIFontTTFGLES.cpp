@@ -123,7 +123,7 @@ void CGUIFontTTFGLES::LastEnd()
   GLint colLoc = renderSystem->GUIShaderGetCol();
   GLint tex0Loc = renderSystem->GUIShaderGetCoord0();
   GLint modelLoc = renderSystem->GUIShaderGetModel();
-  GLint depthLoc = renderSystem->ShaderGetDepth();
+  GLint depthLoc = renderSystem->GUIShaderGetDepth();
 
   CreateStaticVertexBuffers();
 

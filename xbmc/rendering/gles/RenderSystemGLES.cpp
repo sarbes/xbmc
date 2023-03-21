@@ -645,7 +645,7 @@ GLint CRenderSystemGLES::GUIShaderGetCoord1()
   return -1;
 }
 
-GLint CRenderSystemGLES::ShaderGetDepth()
+GLint CRenderSystemGLES::GUIShaderGetDepth()
 {
   if (m_pShader[m_method])
     return m_pShader[m_method]->GetDepthLoc();
