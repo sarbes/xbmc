@@ -393,8 +393,10 @@ void CLinuxRendererGLES::ClearBackBufferQuad()
   m_renderSystem->EnableGUIShader(ShaderMethodGLES::SM_DEFAULT);
   GLint posLoc = m_renderSystem->GUIShaderGetPos();
   GLint uniCol = m_renderSystem->GUIShaderGetUniCol();
+  GLint depthLoc = m_renderSystem->GUIShaderGetDepth();
 
   glUniform4f(uniCol, m_clearColour / 255.0f, m_clearColour / 255.0f, m_clearColour / 255.0f, 1.0f);
+  glUniform1f(depthLoc, -1);
 
   GLuint vertexVBO;
   glGenBuffers(1, &vertexVBO);
@@ -455,8 +457,10 @@ void CLinuxRendererGLES::DrawBlackBars()
   renderSystem->EnableGUIShader(ShaderMethodGLES::SM_DEFAULT);
   GLint posLoc = renderSystem->GUIShaderGetPos();
   GLint uniCol = renderSystem->GUIShaderGetUniCol();
+  GLint depthLoc = m_renderSystem->GUIShaderGetDepth();
 
   glUniform4f(uniCol, m_clearColour / 255.0f, m_clearColour / 255.0f, m_clearColour / 255.0f, 1.0f);
+  glUniform1f(depthLoc, -1);
 
   GLuint vertexVBO;
   glGenBuffers(1, &vertexVBO);
