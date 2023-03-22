@@ -813,7 +813,7 @@ void CSlideShowPic::Render(float* x, float* y, CTexture* pTexture, UTILS::COLOR:
 
   CGUIShaderDX* pGUIShader = DX::Windowing()->GetGUIShader();
   pGUIShader->Begin(SHADER_METHOD_RENDER_TEXTURE_BLEND);
-
+  pGUIShader->SetDepth(-1.f);
   // Set state to render the image
   if (pTexture)
   {

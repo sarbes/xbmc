@@ -497,7 +497,8 @@ void CD3DTexture::DrawQuad(const CPoint points[4],
                            UTILS::COLOR::Color color,
                            CD3DTexture* texture,
                            const CRect* texCoords,
-                           SHADER_METHOD options)
+                           SHADER_METHOD options,
+                           float depth)
 {
   unsigned numViews = 0;
   ID3D11ShaderResourceView* views = nullptr;
@@ -508,14 +509,15 @@ void CD3DTexture::DrawQuad(const CPoint points[4],
     views = texture->GetShaderResource();
   }
 
-  DrawQuad(points, color, numViews, &views, texCoords, options);
+  DrawQuad(points, color, numViews, &views, texCoords, options, depth);
 }
 
 void CD3DTexture::DrawQuad(const CRect& rect,
                            UTILS::COLOR::Color color,
                            CD3DTexture* texture,
                            const CRect* texCoords,
-                           SHADER_METHOD options)
+                           SHADER_METHOD options,
+                           float depth)
 {
   CPoint points[] =
   {
@@ -524,7 +526,7 @@ void CD3DTexture::DrawQuad(const CRect& rect,
     { rect.x2, rect.y2 },
     { rect.x1, rect.y2 },
   };
-  DrawQuad(points, color, texture, texCoords, options);
+  DrawQuad(points, color, texture, texCoords, options, depth);
 }
 
 void CD3DTexture::DrawQuad(const CPoint points[4],
@@ -532,7 +534,8 @@ void CD3DTexture::DrawQuad(const CPoint points[4],
                            unsigned numViews,
                            ID3D11ShaderResourceView** view,
                            const CRect* texCoords,
-                           SHADER_METHOD options)
+                           SHADER_METHOD options,
+                           float depth)
 {
   XMFLOAT4 xcolor;
   CD3DHelper::XMStoreColor(&xcolor, color);
@@ -550,6 +553,7 @@ void CD3DTexture::DrawQuad(const CPoint points[4],
   pGUIShader->Begin(view && numViews > 0 ? options : SHADER_METHOD_RENDER_DEFAULT);
   if (view && numViews > 0)
     pGUIShader->SetShaderViews(numViews, view);
+  pGUIShader->SetDepth(depth);
   pGUIShader->DrawQuad(verts[0], verts[1], verts[2], verts[3]);
 }
 
@@ -558,7 +562,8 @@ void CD3DTexture::DrawQuad(const CRect& rect,
                            unsigned numViews,
                            ID3D11ShaderResourceView** view,
                            const CRect* texCoords,
-                           SHADER_METHOD options)
+                           SHADER_METHOD options,
+                           float depth)
 {
   CPoint points[] =
   {
@@ -567,7 +572,7 @@ void CD3DTexture::DrawQuad(const CRect& rect,
     { rect.x2, rect.y2 },
     { rect.x1, rect.y2 },
   };
-  DrawQuad(points, color, numViews, view, texCoords, options);
+  DrawQuad(points, color, numViews, view, texCoords, options, depth);
 }
 
 CD3DEffect::CD3DEffect()

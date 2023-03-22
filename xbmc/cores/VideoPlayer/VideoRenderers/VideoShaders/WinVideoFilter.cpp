@@ -57,11 +57,11 @@ bool CWinShader::CreateInputLayout(D3D11_INPUT_ELEMENT_DESC *layout, unsigned nu
   return SUCCEEDED(pDevice->CreateInputLayout(layout, numElements, desc.pIAInputSignature, desc.IAInputSignatureSize, &m_inputLayout));
 }
 
-void CWinShader::SetTarget(CD3DTexture* target)
+void CWinShader::SetTarget(CD3DTexture* target, ID3D11DepthStencilView* dsv)
 {
   m_target = target;
   if (m_target)
-    DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, target->GetAddressOfRTV(), nullptr);
+    DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, target->GetAddressOfRTV(), dsv);
 }
 
 bool CWinShader::LockVertexBuffer(void **data)
@@ -110,11 +110,12 @@ bool CWinShader::LoadEffect(const std::string& filename, DefinesMap* defines)
 bool CWinShader::Execute(const std::vector<CD3DTexture*> &targets, unsigned int vertexIndexStep)
 {
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
-  ComPtr<ID3D11RenderTargetView> oldRT;
+  ComPtr<ID3D11RenderTargetView> origRTV{};
+  ComPtr<ID3D11DepthStencilView> origDSV{};
 
-  // The render target will be overridden: save the caller's original RT
+  // The render target may be overridden. Save the caller's original RTV & DSV.
   if (!targets.empty())
-    pContext->OMGetRenderTargets(1, &oldRT, nullptr);
+    pContext->OMGetRenderTargets(1, &origRTV, &origDSV);
 
   unsigned cPasses;
   if (!m_effect.Begin(&cPasses, 0))
@@ -134,7 +135,10 @@ bool CWinShader::Execute(const std::vector<CD3DTexture*> &targets, unsigned int 
 
   for (unsigned iPass = 0; iPass < cPasses; iPass++)
   {
-    SetTarget(targets.size() > iPass ? targets.at(iPass) : nullptr);
+    // No depth buffer for intermediate render targets
+    // set it only for the last pass of the last shader (expected to be the back buffer)
+    SetTarget(targets.size() > iPass ? targets.at(iPass) : nullptr,
+              (iPass == cPasses - 1) && m_finalShader ? origDSV.Get() : nullptr);
     SetStepParams(iPass);
 
     if (!m_effect.BeginPass(iPass))
@@ -153,8 +157,8 @@ bool CWinShader::Execute(const std::vector<CD3DTexture*> &targets, unsigned int 
   if (!m_effect.End())
     CLog::LogF(LOGERROR, "failed to end d3d effect");
 
-  if (oldRT)
-    pContext->OMSetRenderTargets(1, oldRT.GetAddressOf(), nullptr);
+  if (origRTV)
+    pContext->OMSetRenderTargets(1, origRTV.GetAddressOf(), origDSV.Get());
 
   return true;
 }

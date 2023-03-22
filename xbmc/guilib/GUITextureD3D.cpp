@@ -134,6 +134,7 @@ void CGUITextureD3D::Draw(float *x, float *y, float *z, const CRect &texture, co
     ID3D11ShaderResourceView* resource = tex->GetShaderResource();
     pGUIShader->SetShaderViews(1, &resource);
   }
+  pGUIShader->SetDepth(m_depth);
   pGUIShader->DrawQuad(verts[0], verts[1], verts[2], verts[3]);
 }
 
@@ -153,5 +154,5 @@ void CGUITextureD3D::DrawQuad(const CRect& rect,
     views = ((CDXTexture *)texture)->GetShaderResource();
   }
 
-  CD3DTexture::DrawQuad(rect, color, numViews, &views, texCoords, texture ? SHADER_METHOD_RENDER_TEXTURE_BLEND : SHADER_METHOD_RENDER_DEFAULT);
+  CD3DTexture::DrawQuad(rect, color, numViews, &views, texCoords, texture ? SHADER_METHOD_RENDER_TEXTURE_BLEND : SHADER_METHOD_RENDER_DEFAULT, depth);
 }

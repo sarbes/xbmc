@@ -56,6 +56,8 @@ protected:
   int NextBuffer() const;
   CRendererBase* SelectRenderer(const VideoPicture &picture);
   CRect GetScreenRect() const;
+  void ClearBackBuffer() const;
+  void ClearBackBufferQuad() const;
 
   bool m_bConfigured = false;
   std::unique_ptr<CRendererBase> m_renderer;

@@ -424,9 +424,11 @@ void CRendererBase::UpdateVideoFilters()
       CLog::LogF(LOGDEBUG, "unable to create output shader.");
       m_outputShader.reset();
     }
-    else if (m_pLUTView && m_lutSize)
+    else
     {
-      m_outputShader->SetLUT(m_lutSize, m_pLUTView.Get());
+      m_outputShader->SetFinalShader(true);
+      if (m_pLUTView && m_lutSize)
+        m_outputShader->SetLUT(m_lutSize, m_pLUTView.Get());
     }
   }
 }
