@@ -62,6 +62,11 @@ public:
   void XM_CALLCONV SetView(const DirectX::XMMATRIX &value);
   void XM_CALLCONV SetProjection(const DirectX::XMMATRIX &value);
   void Project(float &x, float &y, float &z);
+  /*!
+   * \brief Sets the depth value of the primitives to be drawn (overrides z of the vertices)
+   * \param depth value -1=far to 1=near (GL convention).
+   */
+  void SetDepth(float depth);
 
   void DrawQuad(Vertex& v1, Vertex& v2, Vertex& v3, Vertex& v4);
   void DrawIndexed(unsigned int indexCount, unsigned int startIndex, unsigned int startVertex);
@@ -108,6 +113,7 @@ private:
     float colorRange;
     float sdrPeakLum;
     int PQ;
+    float depth;
   };
 
   void Release(void);
@@ -119,6 +125,7 @@ private:
   // GUI constants
   cbViewPort m_cbViewPort = {};
   cbWorldViewProj m_cbWorldViewProj = {};
+  float m_depth = 1.f;
 
   bool  m_bCreated;
   size_t m_currentShader;

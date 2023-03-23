@@ -22,6 +22,13 @@ class CGUIShaderDX;
 enum AVPixelFormat;
 enum AVPixelFormat;
 
+enum Depth_State
+{
+  DEPTH_OFF = 0,
+  DEPTH_RO,
+  DEPTH_RW
+};
+
 class CRenderSystemDX : public CRenderSystemBase, DX::IDeviceNotify
 {
 public:
@@ -42,6 +49,7 @@ public:
   bool ScissorsCanEffectClipping() override;
   void SetScissors(const CRect &rect) override;
   void ResetScissors() override;
+  void SetDepthCulling(DEPTH_CULLING culling) override;
   void CaptureStateBlock() override;
   void ApplyStateBlock() override;
   void SetCameraPosition(const CPoint &camera, int screenWidth, int screenHeight, float stereoFactor = 0.f) override;
@@ -78,6 +86,7 @@ protected:
   void OnResize();
   void CheckInterlacedStereoView(void);
   void CheckDeviceCaps();
+  Microsoft::WRL::ComPtr<ID3D11DepthStencilState> DepthStencilState();
 
   CCriticalSection m_resourceSection;
   CCriticalSection m_decoderSection;
@@ -91,6 +100,8 @@ protected:
   CRect m_scissor;
   CGUIShaderDX* m_pGUIShader{ nullptr };
   Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+  Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStateF2B;
+  Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStateB2F;
   Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendEnableState;
   Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendDisableState;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RSScissorDisable;
@@ -102,5 +113,6 @@ protected:
   XbmcThreads::ConditionVariable m_decodingEvent;
 
   std::shared_ptr<DX::DeviceResources> m_deviceResources;
+  Depth_State m_depthState{Depth_State::DEPTH_OFF};
 };
 

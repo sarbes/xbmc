@@ -12,6 +12,7 @@
 #include "RenderCaptureDX.h"
 #include "RenderFactory.h"
 #include "RenderFlags.h"
+#include "guilib/GUITextureD3D.h"
 #include "rendering/dx/RenderContext.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
@@ -209,7 +210,8 @@ void CWinRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int 
     return;
 
   if (clear)
-    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
+    ClearBackBuffer();
+
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   ManageRenderArea();
@@ -350,4 +352,28 @@ DEBUG_INFO_VIDEO CWinRenderer::GetDebugInfo(int idx)
 CRenderCapture* CWinRenderer::GetRenderCapture()
 {
   return new CRenderCaptureDX;
+}
+
+void CWinRenderer::ClearBackBuffer() const
+{
+  //set the entire backbuffer to black
+  //if we do a two pass render, we have to draw a quad. else we might occlude OSD elements.
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() ==
+      RENDER_ORDER_ALL_BACK_TO_FRONT)
+  {
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0xff000000);
+  }
+  else
+  {
+    ClearBackBufferQuad();
+  }
+}
+
+void CWinRenderer::ClearBackBufferQuad() const
+{
+  CRect windowRect(0, 0, CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth(),
+                   CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight());
+
+  DX::Windowing()->SetAlphaBlendEnable(false);
+  CGUITextureD3D::DrawQuad(windowRect, DX::Windowing()->UseLimitedColor() ? 0x101010 : 0, nullptr, nullptr, -1.f);
 }

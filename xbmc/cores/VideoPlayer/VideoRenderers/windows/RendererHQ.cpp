@@ -137,6 +137,8 @@ void CRendererHQ::UpdateVideoFilters()
       }
     }
   }
+  if (m_scalerShader)
+    m_scalerShader->SetFinalShader(true);
 }
 
 void CRendererHQ::FinalOutput(CD3DTexture& source, CD3DTexture& target, const CRect& sourceRect, const CPoint(&destPoints)[4])

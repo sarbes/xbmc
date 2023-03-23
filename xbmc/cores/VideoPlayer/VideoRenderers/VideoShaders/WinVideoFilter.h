@@ -29,6 +29,13 @@ using namespace DirectX;
 
 class CWinShader
 {
+public:
+  /*!
+   * Set to true for the shader at the end of the chain that outputs to the back buffer.
+   * This will ensure that the depth buffer is bound.
+   */
+  void SetFinalShader(bool final) { m_finalShader = final; }
+
 protected:
   CWinShader() = default;
   virtual ~CWinShader() = default;
@@ -45,13 +52,14 @@ protected:
   CD3DTexture* m_target = nullptr;
 
 private:
-  void SetTarget(CD3DTexture* target);
+  void SetTarget(CD3DTexture* target, ID3D11DepthStencilView* dsv);
 
   CD3DBuffer m_vb;
   CD3DBuffer m_ib;
   unsigned int m_vbsize = 0;
   unsigned int m_vertsize = 0;
   Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout = nullptr;
+  bool m_finalShader{false};
 };
 
 class COutputShader : public CWinShader

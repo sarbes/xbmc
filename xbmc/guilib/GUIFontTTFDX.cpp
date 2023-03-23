@@ -91,6 +91,9 @@ void CGUIFontTTFDX::LastEnd()
   unsigned int stride = sizeof(SVertex);
 
   CGUIShaderDX* pGUIShader = DX::Windowing()->GetGUIShader();
+  float depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth();
+  pGUIShader->SetDepth(depth);
+
   // Set font texture as shader resource
   pGUIShader->SetShaderViews(1, m_speedupTexture->GetAddressOfSRV());
   // Enable alpha blend
