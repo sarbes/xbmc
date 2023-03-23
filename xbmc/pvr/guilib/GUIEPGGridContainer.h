@@ -128,6 +128,9 @@ namespace PVR
      */
     bool SetChannel(const CPVRChannelNumber& channelNumber);
 
+  virtual void AssignDepth() override;
+  
+  void AssignItemDepth(CGUIListItem* item, bool focused);
   private:
     bool OnClick(int actionID);
     bool SelectItemFromPoint(const CPoint& point, bool justGrid = true);
@@ -201,10 +204,10 @@ namespace PVR
     bool OnMouseDoubleClick(int dwButton, const CPoint& point);
     bool OnMouseWheel(char wheel, const CPoint& point);
 
-    void HandleChannels(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions);
-    void HandleRuler(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions);
-    void HandleRulerDate(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions);
-    void HandleProgrammeGrid(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions);
+    void HandleChannels(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions, bool bAssignDepth = false);
+    void HandleRuler(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions, bool bAssignDepth = false);
+    void HandleRulerDate(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions, bool bAssignDepth = false);
+    void HandleProgrammeGrid(bool bRender, unsigned int currentTime, CDirtyRegionList& dirtyregions, bool bAssignDepth = false);
 
     float GetCurrentTimePositionOnPage() const;
     float GetProgressIndicatorWidth() const;
