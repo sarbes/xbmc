@@ -350,7 +350,7 @@ void CGUIEPGGridContainer::RenderProgressIndicator()
   if (CServiceBroker::GetWinSystem()->GetGfxContext().SetClipRegion(m_rulerPosX, m_rulerPosY, GetProgressIndicatorWidth(), GetProgressIndicatorHeight()))
   {
     m_guiProgressIndicatorTexture->SetDiffuseColor(m_diffuseColor);
-    m_guiProgressIndicatorTexture->Render();
+    m_guiProgressIndicatorTexture->Render(0, m_guiProgressIndicatorTextureDepth);
     CServiceBroker::GetWinSystem()->GetGfxContext().RestoreClipRegion();
   }
 }
@@ -2603,6 +2603,7 @@ void CGUIEPGGridContainer::AssignDepth()
   HandleRuler(false, dummyTime, dummyRegions, true);
   HandleRulerDate(false, dummyTime, dummyRegions, true);
   HandleProgrammeGrid(false, dummyTime, dummyRegions, true);
+  m_guiProgressIndicatorTextureDepth = CServiceBroker::GetWinSystem()->GetGfxContext().GetDepth();
 }
 
 void CGUIEPGGridContainer::AssignItemDepth(CGUIListItem* item, bool focused)

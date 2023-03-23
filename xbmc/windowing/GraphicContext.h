@@ -15,6 +15,7 @@
 #include "utils/Geometry.h" // for CRect/CPoint
 #include "utils/TransformMatrix.h" // for the members m_guiTransform etc.
 
+#include <cstdint>
 #include <map>
 #include <stack>
 #include <string>
@@ -163,6 +164,11 @@ public:
    \returns float normalized -1 to 1
    */
   float GetTransformDepth(int32_t depthOffset = 0);
+  /*! \brief Gets the (normalized) depth information 
+   \param depth to be normalized
+   \returns float normalized -1 to 1
+   */
+  float GetNormalizedDepth(uint32_t depth);
   /*! \brief Set a region in which to clip all rendering
    Anything that is rendered after setting a clip region will be clipped so that no part renders
    outside of the clip region.  Successive calls to SetClipRegion intersect the clip region, which

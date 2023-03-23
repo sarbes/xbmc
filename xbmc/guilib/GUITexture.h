@@ -89,7 +89,7 @@ public:
                        const float depth = 1.0);
 
   bool Process(unsigned int currentTime);
-  void Render(int32_t depthOffset = 0);
+  void Render(int32_t depthOffset = 0, int32_t overrideDepth = -1);
 
   void DynamicResourceAlloc(bool bOnOff);
   bool AllocResources();

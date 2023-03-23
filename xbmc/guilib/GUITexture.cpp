@@ -15,6 +15,7 @@
 #include "utils/StringUtils.h"
 #include "windowing/GraphicContext.h"
 
+#include <cstdint>
 #include <stdexcept>
 
 CreateGUITextureFunc CGUITexture::m_createGUITextureFunc;
@@ -169,7 +170,7 @@ bool CGUITexture::Process(unsigned int currentTime)
   return changed;
 }
 
-void CGUITexture::Render(int32_t depthOffset)
+void CGUITexture::Render(int32_t depthOffset, int32_t overrideDepth)
 {
   if (!m_visible || !m_texture.size())
     return;
@@ -185,7 +186,10 @@ void CGUITexture::Render(int32_t depthOffset)
 
   color = CServiceBroker::GetWinSystem()->GetGfxContext().MergeColor(color);
 
-  m_depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth(depthOffset);
+  if (overrideDepth >= 0)
+    m_depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetNormalizedDepth(overrideDepth + depthOffset);
+  else
+    m_depth = CServiceBroker::GetWinSystem()->GetGfxContext().GetTransformDepth(depthOffset);
 
   bool hasAlpha =
       (((color >> 24) & 0xFF) != 0xFF || m_texture.m_textures[m_currentFrame]->HasAlpha());

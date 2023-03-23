@@ -16,6 +16,7 @@
 #include "threads/CriticalSection.h"
 #include "utils/Geometry.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -251,6 +252,7 @@ namespace PVR
     float m_analogScrollCount;
 
     std::unique_ptr<CGUITexture> m_guiProgressIndicatorTexture;
+    uint32_t m_guiProgressIndicatorTextureDepth{0};
 
     std::shared_ptr<CFileItem> m_lastItem;
     std::shared_ptr<CFileItem> m_lastChannel;

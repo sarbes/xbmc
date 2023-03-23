@@ -829,6 +829,14 @@ void CGraphicContext::RestoreStereoFactor()
   UpdateCameraPosition(m_cameras.top(), m_stereoFactors.top());
 }
 
+float CGraphicContext::GetNormalizedDepth(uint32_t depth)
+{
+  float normalizedDepth = static_cast<float>(depth);
+  normalizedDepth /= m_layer;
+  normalizedDepth = normalizedDepth * 2 - 1;
+  return normalizedDepth;
+}
+
 float CGraphicContext::GetTransformDepth(int32_t depthOffset)
 {
   float depth = static_cast<float>(m_finalTransform.matrix.depth + depthOffset);
