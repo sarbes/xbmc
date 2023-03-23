@@ -241,11 +241,22 @@ void CGUIEPGGridContainer::Process(unsigned int currentTime, CDirtyRegionList& d
 
 void CGUIEPGGridContainer::Render()
 {
-  RenderChannels();
-  RenderRulerDate();
-  RenderRuler();
-  RenderProgrammeGrid();
-  RenderProgressIndicator();
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().GetRenderOrder() == RENDER_ORDER_FRONT_TO_BACK)
+  {
+    RenderProgressIndicator();
+    RenderProgrammeGrid();
+    RenderRuler();
+    RenderRulerDate();
+    RenderChannels();
+  }
+  else
+  {
+    RenderChannels();
+    RenderRulerDate();
+    RenderRuler();
+    RenderProgrammeGrid();
+    RenderProgressIndicator();
+  }
 
   CGUIControl::Render();
 }
