@@ -1291,11 +1291,17 @@ bool CGUIWindowManager::Render()
   assert(CServiceBroker::GetAppMessenger()->IsProcessThread());
   CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
 
+  int bufferAge = CServiceBroker::GetWinSystem()->GetBufferAge();
+  bool visualizeDirtyRegions = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions;
+  if (visualizeDirtyRegions)
+    bufferAge = 20;
+  m_tracker.CleanMarkedRegions(bufferAge);
   CDirtyRegionList dirtyRegions = m_tracker.GetDirtyRegions();
+  CServiceBroker::GetWinSystem()->SetDirtyRegions(dirtyRegions);
 
   bool hasRendered = false;
   // If we visualize the regions we will always render the entire viewport
-  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions || CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ALWAYS)
+  if (visualizeDirtyRegions || CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ALWAYS)
   {
     RenderPass();
     hasRendered = true;
@@ -1322,14 +1328,14 @@ bool CGUIWindowManager::Render()
     CServiceBroker::GetWinSystem()->GetGfxContext().ResetScissors();
   }
 
-  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions)
+  if (visualizeDirtyRegions)
   {
     CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderingResolution(CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo(), false);
     const CDirtyRegionList &markedRegions  = m_tracker.GetMarkedRegions();
     for (const auto& i : markedRegions)
       CGUITexture::DrawQuad(i, 0x0fff0000);
     for (const auto& i : dirtyRegions)
-      CGUITexture::DrawQuad(i, 0x4c00ff00);
+      CGUITexture::DrawQuad(i, 0x8000ff00);
   }
 
   return hasRendered;
@@ -1337,8 +1343,6 @@ bool CGUIWindowManager::Render()
 
 void CGUIWindowManager::AfterRender()
 {
-  m_tracker.CleanMarkedRegions();
-
   CGUIWindow* pWindow = GetWindow(GetActiveWindow());
   if (pWindow)
     pWindow->AfterRender();
