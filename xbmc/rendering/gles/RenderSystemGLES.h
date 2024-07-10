@@ -145,6 +145,10 @@ protected:
 
   std::string m_RenderExtensions;
 
+#if defined(GL_EXT_discard_framebuffer) && defined(TARGET_LINUX)
+  PFNGLDISCARDFRAMEBUFFEREXTPROC m_glDiscardFramebufferEXT{nullptr};
+#endif
+
   std::map<ShaderMethodGLES, std::unique_ptr<CGLESShader>> m_pShader;
   ShaderMethodGLES m_method = ShaderMethodGLES::SM_DEFAULT;
 

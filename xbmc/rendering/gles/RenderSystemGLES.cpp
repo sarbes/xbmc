@@ -105,6 +105,12 @@ bool CRenderSystemGLES::InitRenderSystem()
   }
 #endif
 
+#if defined(GL_EXT_discard_framebuffer) && defined(TARGET_LINUX)
+  if (IsExtSupported("GL_EXT_discard_framebuffer"))
+    m_glDiscardFramebufferEXT = CEGLUtils::GetRequiredProcAddress<PFNGLDISCARDFRAMEBUFFEREXTPROC>(
+        "glDiscardFramebufferEXT");
+#endif
+
   LogGraphicsInfo();
 
   m_bRenderCreated = true;
@@ -199,9 +205,30 @@ void CRenderSystemGLES::InvalidateColorBuffer()
   if (!m_bRenderCreated)
     return;
 
-  // some platforms prefer a clear, instead of rendering over
+// clang-format off
+  // Invalidate color FB if possible, or clear if enabled by the user.
+#if defined(GL_ES_VERSION_3_0) && defined(GL_GLES_PROTOTYPES)
+  if (m_RenderVersionMajor == 3)
+  {
+    GLenum attachments = GL_COLOR;
+    glInvalidateFramebuffer(GL_DRAW_FRAMEBUFFER, 1, &attachments);
+  }
+  else
+#endif
+#if defined(GL_EXT_discard_framebuffer) && defined(TARGET_LINUX)
+  if (m_glDiscardFramebufferEXT)
+  {
+    GLenum attachments = GL_COLOR_EXT;
+    m_glDiscardFramebufferEXT(GL_DRAW_FRAMEBUFFER, 1, &attachments);
+  }
+  else
+#endif
+// clang-format on
   if (!CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiGeometryClear)
+  {
     ClearBuffers(0);
+    return;
+  }
 
   if (!CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiFrontToBackRendering)
     return;

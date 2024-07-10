@@ -282,12 +282,22 @@ void CRenderSystemGL::InvalidateColorBuffer()
   if (m_stereoMode == RENDER_STEREO_MODE_INTERLACED && m_stereoView == RENDER_STEREO_VIEW_RIGHT)
     return;
 
-  // some platforms prefer a clear, instead of rendering over
+// clang-format off
+  // Invalidate color FB if possible, or clear if enabled by the user.
+#if defined(GL_VERSION_4_3) && defined(GL_GLEXT_PROTOTYPES)
+  if (m_RenderVersionMajor == 4 && m_RenderVersionMinor >= 3)
+  {
+    GLenum attachments = GL_COLOR;
+    glInvalidateFramebuffer(GL_DRAW_FRAMEBUFFER, 1, &attachments);
+  }
+  else
+#endif
   if (!CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiGeometryClear)
   {
     ClearBuffers(0);
     return;
   }
+// clang-format on
 
   if (!CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiFrontToBackRendering)
     return;
