@@ -439,7 +439,7 @@ bool CEGLContextUtils::CreateContext(CEGLAttributesVec contextAttribs)
   {
     m_partialUpdateSupport = true;
     m_eglSetDamageRegionKHR =
-        (PFNEGLSETDAMAGEREGIONKHRPROC)eglGetProcAddress("eglSetDamageRegionKHR");
+        reinterpret_cast<PFNEGLSETDAMAGEREGIONKHRPROC>(eglGetProcAddress("eglSetDamageRegionKHR"));
   }
 
   return true;
