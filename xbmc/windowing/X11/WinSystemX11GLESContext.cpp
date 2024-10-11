@@ -150,7 +150,7 @@ bool CWinSystemX11GLESContext::CreateNewWindow(const std::string& name, bool ful
     return false;
 
   m_pGLContext->QueryExtensions();
-  m_pGLContext->CheckBufferAgeSupport();
+  m_bufferAgeSupport = m_pGLContext->IsBufferAgeSupported();
   return true;
 }
 

@@ -39,7 +39,7 @@ public:
   bool SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool blankOtherDisplays) override;
   bool DestroyWindowSystem() override;
   bool DestroyWindow() override;
-  int GetBufferAge() override { return m_pGLContext->GetBufferAge(); }
+  int GetBufferAge() override { return m_bufferAgeSupport ? m_pGLContext->GetBufferAge() : 2; }
 
   bool IsExtSupported(const char* extension) const override;
 
@@ -61,6 +61,7 @@ protected:
 
   CGLContextEGL* m_pGLContext = nullptr;
   bool m_newGlContext;
+  bool m_bufferAgeSupport{false};
 };
 
 } // namespace X11
