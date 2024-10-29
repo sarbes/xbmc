@@ -233,15 +233,21 @@ void LogGraphicsInfo()
       GLint i;
       for (i = 0; i < n; i++)
       {
-        extensions += (const char*)glGetStringi(GL_EXTENSIONS, i);
-        extensions += " ";
+        s = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+        if (s)
+        {
+          extensions += s;
+          extensions += " ";
+        }
       }
     }
   }
   else
 #endif
   {
-    extensions += (const char*) glGetString(GL_EXTENSIONS);
+    s = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+    if (s)
+      extensions += s;
   }
 
   if (!extensions.empty())
