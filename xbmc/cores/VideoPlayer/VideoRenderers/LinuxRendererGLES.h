@@ -71,7 +71,8 @@ public:
   void UnInit() override;
   bool Flush(bool saveBuffers) override;
   void SetBufferSize(int numBuffers) override { m_NumYV12Buffers = numBuffers; }
-  bool IsGuiLayer() override;
+  bool IsGuiLayer() override { return false; }
+  bool NeedsCompositor() override { return true; }
   void ReleaseBuffer(int idx) override;
   void RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha) override;
   void Update() override;

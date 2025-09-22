@@ -43,10 +43,13 @@ public:
 
   virtual bool BeginRender() = 0;
   virtual bool EndRender() = 0;
+  virtual bool BeginCompositor() { return true; }
+  virtual bool EndCompositor() { return true; }
   virtual void PresentRender(bool rendered, bool videoLayer) = 0;
   virtual void InvalidateColorBuffer() {}
   virtual bool ClearBuffers(KODI::UTILS::COLOR::Color color) = 0;
   virtual bool IsExtSupported(const char* extension) const = 0;
+  virtual void SetCompositing(bool compositing) {m_needsCompositor = compositing;}
 
   virtual void SetViewPort(const CRect& viewPort) = 0;
   virtual void GetViewPort(CRect& viewPort) = 0;
@@ -102,6 +105,7 @@ protected:
   RENDER_STEREO_MODE m_stereoMode = RENDER_STEREO_MODE_OFF;
   bool m_limitedColorRange = false;
   bool m_transferPQ{false};
+  bool m_needsCompositor{false};
 
   std::unique_ptr<CGUIImage> m_splashImage;
   std::unique_ptr<CGUITextLayout> m_splashMessageLayout;

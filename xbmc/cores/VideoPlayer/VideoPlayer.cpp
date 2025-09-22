@@ -5314,6 +5314,11 @@ void CVideoPlayer::UpdateVideoRender(bool video)
   m_processInfo->SetVideoRender(video);
 }
 
+void CVideoPlayer::UpdateCompositor(bool needsCompositor)
+{
+  m_processInfo->SetCompositor(needsCompositor);
+}
+
 // IDispResource interface
 void CVideoPlayer::OnLostDisplay()
 {

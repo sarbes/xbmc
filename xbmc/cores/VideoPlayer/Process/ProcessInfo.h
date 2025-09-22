@@ -109,6 +109,8 @@ public:
   bool GetGuiRender();
   void SetVideoRender(bool video);
   bool GetVideoRender();
+  void SetCompositor(bool needsCompositor);
+  bool GetCompositor();
   unsigned int GetMaxPassthroughOffSyncDuration() const;
 
   void SetPlayTimes(time_t start, int64_t current, int64_t min, int64_t max);
@@ -162,6 +164,7 @@ protected:
   std::atomic_int m_levelVQ;
   std::atomic_bool m_renderGuiLayer;
   std::atomic_bool m_renderVideoLayer;
+  std::atomic_bool m_renderNeedsCompositor;
   float m_tempo;
   float m_newTempo;
   float m_speed;

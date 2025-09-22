@@ -439,6 +439,21 @@ bool CDataCacheCore::GetVideoRender()
   return m_stateInfo.m_renderVideoLayer;
 }
 
+void CDataCacheCore::SetCompositor(bool needsCompositor)
+{
+  std::unique_lock lock(m_stateSection);
+
+  m_stateInfo.m_renderCompositor = needsCompositor;
+  m_playerStateChanged = true;
+}
+
+bool CDataCacheCore::GetCompositor()
+{
+  std::unique_lock lock(m_stateSection);
+
+  return m_stateInfo.m_renderCompositor;
+}
+
 void CDataCacheCore::SetPlayTimes(time_t start, int64_t current, int64_t min, int64_t max)
 {
   std::unique_lock lock(m_stateSection);

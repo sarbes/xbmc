@@ -388,6 +388,7 @@ protected:
   void UpdateRenderBuffers(int queued, int discard, int free) override;
   void UpdateGuiRender(bool gui) override;
   void UpdateVideoRender(bool video) override;
+  void UpdateCompositor(bool needsCompositor) override;
 
   virtual void CreatePlayers();
   void DestroyPlayers();

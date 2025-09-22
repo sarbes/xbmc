@@ -9,6 +9,7 @@
 #pragma once
 
 #include "GLESShader.h"
+#include "VideoRenderers/FrameBufferObject.h"
 #include "rendering/RenderSystem.h"
 #include "utils/ColorUtils.h"
 #include "utils/Map.h"
@@ -94,7 +95,10 @@ public:
 
   bool BeginRender() override;
   bool EndRender() override;
+  bool BeginCompositor() override;
+  bool EndCompositor() override;
   void PresentRender(bool rendered, bool videoLayer) override;
+  void Composite();
   void InvalidateColorBuffer() override;
   bool ClearBuffers(KODI::UTILS::COLOR::Color color) override;
   bool IsExtSupported(const char* extension) const override;
@@ -145,6 +149,7 @@ public:
   GLint GUIShaderGetDepth();
 
 protected:
+  void BindDefaultFB();
   virtual void SetVSyncImpl(bool enable) = 0;
   virtual void PresentRenderImpl(bool rendered) = 0;
   void CalculateMaxTexturesize();
@@ -154,6 +159,9 @@ protected:
   int m_height;
 
   std::string m_RenderExtensions;
+
+  GLint m_defaultFB{0};
+  CFrameBufferObject m_guiFBO{};
 
   std::map<ShaderMethodGLES, std::unique_ptr<CGLESShader>> m_pShader;
   ShaderMethodGLES m_method = ShaderMethodGLES::SM_DEFAULT;

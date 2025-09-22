@@ -205,6 +205,7 @@ bool CRenderManager::Configure()
     m_playerPort->UpdateRenderInfo(info);
     m_playerPort->UpdateGuiRender(true);
     m_playerPort->UpdateVideoRender(!m_pRenderer->IsGuiLayer());
+    m_playerPort->UpdateCompositor(m_pRenderer->NeedsCompositor());
 
     m_queued.clear();
     m_discard.clear();

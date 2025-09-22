@@ -656,6 +656,26 @@ bool CProcessInfo::GetVideoRender()
   return m_renderVideoLayer;
 }
 
+void CProcessInfo::SetCompositor(bool needsCompositor)
+{
+  std::unique_lock lock(m_stateSection);
+
+  bool change = (m_renderNeedsCompositor != needsCompositor);
+  m_renderNeedsCompositor = needsCompositor;
+  if (change)
+  {
+    if (m_dataCache)
+      m_dataCache->SetCompositor(needsCompositor);
+  }
+}
+
+bool CProcessInfo::GetCompositor()
+{
+  std::unique_lock lock(m_stateSection);
+
+  return m_renderNeedsCompositor;
+}
+
 void CProcessInfo::SetPlayTimes(time_t start, int64_t current, int64_t min, int64_t max)
 {
   std::unique_lock lock(m_stateSection);

@@ -55,7 +55,7 @@ public:
 
   // Create a new texture and bind to it
   bool CreateAndBindToTexture(GLenum target, int width, int height, GLenum format, GLenum type=GL_UNSIGNED_BYTE,
-                              GLenum filter=GL_LINEAR, GLenum clampmode=GL_CLAMP_TO_EDGE);
+                              GLenum filter=GL_LINEAR, GLenum clampmode=GL_CLAMP_TO_EDGE, bool depth=false);
 
   // Return the internally created texture ID
   GLuint Texture() const { return m_texid; }
@@ -66,11 +66,13 @@ public:
   void EndRender() const;
 
 private:
+  void AddDepth(int width, int height);
   GLuint m_fbo = 0;
   bool   m_valid;
   bool   m_bound;
   bool   m_supported;
   GLuint m_texid = 0;
+  GLuint m_depthRB = 0;
 };
 
 

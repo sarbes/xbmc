@@ -151,6 +151,8 @@ public:
   bool GetGuiRender();
   void SetVideoRender(bool video);
   bool GetVideoRender();
+  void SetCompositor(bool needsCompositor);
+  bool GetCompositor();
   void SetPlayTimes(time_t start, int64_t current, int64_t min, int64_t max);
   void GetPlayTimes(time_t &start, int64_t &current, int64_t &min, int64_t &max);
 
@@ -315,6 +317,7 @@ protected:
     bool m_stateSeeking{false};
     bool m_renderGuiLayer{false};
     bool m_renderVideoLayer{false};
+    bool m_renderCompositor{false};
     float m_tempo{1.0f};
     float m_speed{1.0f};
     bool m_frameAdvance{false};

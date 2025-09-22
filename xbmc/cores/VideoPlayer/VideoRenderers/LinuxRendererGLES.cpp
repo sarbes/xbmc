@@ -499,7 +499,7 @@ void CLinuxRendererGLES::RenderUpdate(int index, int index2, bool clear, unsigne
     return;
   }
 
-  if (!IsGuiLayer())
+  if (!IsGuiLayer() && !NeedsCompositor())
   {
     RenderUpdateVideo(clear, flags, alpha);
     return;
@@ -1795,11 +1795,6 @@ CRenderInfo CLinuxRendererGLES::GetRenderInfo()
   info.max_buffer_size = NUM_BUFFERS;
 
   return info;
-}
-
-bool CLinuxRendererGLES::IsGuiLayer()
-{
-  return true;
 }
 
 CRenderCapture* CLinuxRendererGLES::GetRenderCapture()

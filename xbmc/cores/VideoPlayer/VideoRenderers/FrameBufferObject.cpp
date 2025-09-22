@@ -62,14 +62,18 @@ void CFrameBufferObject::Cleanup()
   if (m_texid)
     glDeleteTextures(1, &m_texid);
 
+  if (m_depthRB)
+    glDeleteRenderbuffers(1, &m_depthRB);
+
   m_texid = 0;
+  m_depthRB = 0;
   m_fbo = 0;
   m_valid = false;
   m_bound = false;
 }
 
 bool CFrameBufferObject::CreateAndBindToTexture(GLenum target, int width, int height, GLenum format, GLenum type,
-                                                GLenum filter, GLenum clampmode)
+                                                GLenum filter, GLenum clampmode, bool zs)
 {
   if (!IsValid())
     return false;
@@ -84,12 +88,18 @@ bool CFrameBufferObject::CreateAndBindToTexture(GLenum target, int width, int he
   glTexParameteri(target, GL_TEXTURE_WRAP_T, clampmode);
   glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
   glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
+
+
   VerifyGLState();
 
   m_bound = false;
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
   glBindTexture(target, m_texid);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, m_texid, 0);
+
+  if (zs)
+    AddDepth(width, height);
+
   VerifyGLState();
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -125,4 +135,13 @@ void CFrameBufferObject::EndRender() const
 {
   if (IsValid())
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void CFrameBufferObject::AddDepth(int width, int height)
+{
+  glGenRenderbuffers(1, &m_depthRB);
+  glBindRenderbuffer(GL_RENDERBUFFER, m_depthRB);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthRB);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }

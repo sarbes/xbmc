@@ -850,6 +850,7 @@ void CApplication::Render()
   if (!CServiceBroker::GetRenderSystem()->BeginRender())
     return;
 
+  CServiceBroker::GetRenderSystem()->SetCompositing(appPlayer->NeedsCompositor());
   // render gui layer
   if (appPower->GetRenderGUI() && !m_skipGuiRender)
   {
@@ -874,11 +875,13 @@ void CApplication::Render()
 
     m_lastRenderTime = std::chrono::steady_clock::now();
   }
+  CServiceBroker::GetRenderSystem()->EndRender();
 
+  CServiceBroker::GetRenderSystem()->BeginCompositor();
   // render video layer
   CServiceBroker::GetGUI()->GetWindowManager().RenderEx();
 
-  CServiceBroker::GetRenderSystem()->EndRender();
+  CServiceBroker::GetRenderSystem()->EndCompositor();
 
   // reset our info cache - we do this at the end of Render so that it is
   // fresh for the next process(), or after a windowclose animation (where process()

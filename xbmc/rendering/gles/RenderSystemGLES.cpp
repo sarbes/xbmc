@@ -117,6 +117,7 @@ bool CRenderSystemGLES::InitRenderSystem()
 
   CGUITextureGLES::Register();
 
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_defaultFB);
   return true;
 }
 
@@ -149,6 +150,9 @@ bool CRenderSystemGLES::ResetRenderSystem(int width, int height)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   glEnable(GL_BLEND); // Turn Blending On
 
+  m_guiFBO.Cleanup();
+  m_guiFBO.Initialize();
+  m_guiFBO.CreateAndBindToTexture(GL_TEXTURE_2D, width, height, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP_TO_EDGE, true);
   return true;
 }
 
@@ -166,6 +170,7 @@ bool CRenderSystemGLES::DestroyRenderSystem()
   ReleaseShaders();
   m_bRenderCreated = false;
 
+  m_guiFBO.Cleanup();
   return true;
 }
 
@@ -187,6 +192,11 @@ bool CRenderSystemGLES::BeginRender()
     InitialiseShaders();
   }
 
+  if (m_needsCompositor)
+    m_guiFBO.BeginRender();
+  else
+    BindDefaultFB();
+
   return true;
 }
 
@@ -194,6 +204,28 @@ bool CRenderSystemGLES::EndRender()
 {
   if (!m_bRenderCreated)
     return false;
+
+  if (m_needsCompositor)
+    m_guiFBO.EndRender();
+
+  return true;
+}
+
+bool CRenderSystemGLES::BeginCompositor()
+{
+  if (m_needsCompositor)
+  {
+    BindDefaultFB();
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0xff000000);
+  }
+
+  return true;
+}
+
+bool CRenderSystemGLES::EndCompositor()
+{
+  if (m_needsCompositor)
+    Composite();
 
   return true;
 }
@@ -271,6 +303,59 @@ void CRenderSystemGLES::PresentRender(bool rendered, bool videoLayer)
   // if video is rendered to a separate layer, we should not block this thread
   if (!rendered && !videoLayer)
     KODI::TIME::Sleep(40ms);
+}
+
+void CRenderSystemGLES::Composite()
+{
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, m_guiFBO.Texture());
+  
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+
+  VerifyGLState();
+
+  EnableGUIShader(ShaderMethodGLES::SM_TEXTURE_NOBLEND);
+
+  GLint posLoc = GUIShaderGetPos();
+  GLint tex0Loc = GUIShaderGetCoord0();
+  GLint depthLoc = GUIShaderGetDepth();
+
+  GLfloat ver[4][3];
+  GLfloat tex[3][2];
+
+  glVertexAttribPointer(posLoc,  3, GL_FLOAT, 0, 0, ver);
+  glVertexAttribPointer(tex0Loc, 2, GL_FLOAT, 0, 0, tex);
+
+  glEnableVertexAttribArray(posLoc);
+  glEnableVertexAttribArray(tex0Loc);
+
+  glUniform1f(depthLoc, 1.0);
+
+  ver[0][0] = ver[0][1] = ver[0][2] = 0.0;
+  ver[1][0] = ver[1][2] = 0.0;
+  ver[1][1] = m_height * 2.0;
+  ver[2][1] = ver[2][2] = 0.0;
+  ver[2][0] = m_width * 2.0;
+
+  tex[0][0] = 0.0;
+  tex[0][1] = 1.0;
+  tex[1][0] = 0.0;
+  tex[1][1] = -1.0;
+  tex[2][0] = 2.0;
+  tex[2][1] = 1.0;
+  
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  glDisableVertexAttribArray(posLoc);
+  glDisableVertexAttribArray(tex0Loc);
+
+  DisableGUIShader();
+}
+
+void CRenderSystemGLES::BindDefaultFB()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFB);
 }
 
 void CRenderSystemGLES::SetVSync(bool enable)

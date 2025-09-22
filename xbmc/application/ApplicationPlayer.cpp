@@ -931,6 +931,15 @@ bool CApplicationPlayer::IsRenderingVideoLayer() const
     return false;
 }
 
+bool CApplicationPlayer::NeedsCompositor() const
+{
+  const std::shared_ptr<const IPlayer> player = GetInternal();
+  if (player)
+    return CServiceBroker::GetDataCacheCore().GetCompositor();
+  else
+    return false;
+}
+
 bool CApplicationPlayer::Supports(EINTERLACEMETHOD method) const
 {
   const std::shared_ptr<const IPlayer> player = GetInternal();
